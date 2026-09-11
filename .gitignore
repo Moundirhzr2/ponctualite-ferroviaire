@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/raw/
+data/ingest.log
+data/gtfs/
+data/punctuality.db
+data/punctuality.db-wal
+data/punctuality.db-shm
+data/export/

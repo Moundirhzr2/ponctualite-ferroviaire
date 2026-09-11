@@ -1,0 +1,132 @@
+"""Assert the pipeline's invariants. Exits non-zero when any of them breaks.
+
+Two kinds of check live here. Structural ones catch a broken build: duplicate
+dimension keys, orphan facts, impossible values. Methodological ones pin down
+the decisions the figures depend on — cancelled trips excluded from the rate,
+ADDED trips absent from the fact table. Those are easy to undo by accident
+while editing a query, and undoing them inflates the punctuality rate without
+anything looking wrong, so they are tested rather than merely documented.
+
+Run after build_marts.py, before trusting any number.
+"""
+
+import sqlite3
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+DB_PATH = ROOT / "data" / "punctuality.db"
+
+MIN_JOIN_RATE = 95.0  # observations (excluding ADDED) that must reach the fact table
+
+# label -> (sql returning a single number, predicate on that number)
+CHECKS = [
+    (
+        "dim_station.stop_id unique",
+        "SELECT COUNT(*) - COUNT(DISTINCT stop_id) FROM dim_station",
+        lambda n: n == 0,
+        "duplicate keys break the Power BI relationship",
+    ),
+    (
+        "dim_route.route_id unique",
+        "SELECT COUNT(*) - COUNT(DISTINCT route_id) FROM dim_route",
+        lambda n: n == 0,
+        "duplicate keys break the Power BI relationship",
+    ),
+    (
+        "no orphan station keys",
+        """SELECT COUNT(*) FROM fact_passage f
+           LEFT JOIN dim_station d ON d.stop_id = f.stop_id WHERE d.stop_id IS NULL""",
+        lambda n: n == 0,
+        "fact rows pointing at a station that does not exist",
+    ),
+    (
+        "no orphan route keys",
+        """SELECT COUNT(*) FROM fact_passage f
+           LEFT JOIN dim_route d ON d.route_id = f.route_id WHERE d.route_id IS NULL""",
+        lambda n: n == 0,
+        "fact rows pointing at a route that does not exist",
+    ),
+    (
+        "is_punctual is 0, 1 or NULL",
+        "SELECT COUNT(*) FROM fact_passage WHERE is_punctual NOT IN (0, 1)",
+        lambda n: n == 0,
+        "the flag must stay boolean for AVG() to mean a rate",
+    ),
+    (
+        "scheduled_hour within 0-23",
+        "SELECT COUNT(*) FROM fact_passage WHERE scheduled_hour NOT BETWEEN 0 AND 23",
+        lambda n: n == 0,
+        "GTFS times past 24:00 must be folded back into a clock hour",
+    ),
+    (
+        "every fact row has a theoretical time",
+        "SELECT COUNT(*) FROM fact_passage WHERE scheduled_arrival IS NULL",
+        lambda n: n == 0,
+        "a passage with no schedule cannot be measured against one",
+    ),
+    (
+        "cancelled trips excluded from the rate",
+        """SELECT COUNT(*) FROM fact_passage
+           WHERE schedule_relationship = 'CANCELED' AND is_punctual IS NOT NULL""",
+        lambda n: n == 0,
+        "a cancelled train is not a punctual one; counting it inflates the rate",
+    ),
+    (
+        "ADDED trips absent from the fact table",
+        "SELECT COUNT(*) FROM fact_passage WHERE schedule_relationship = 'ADDED'",
+        lambda n: n == 0,
+        "ADDED trips have no theoretical time by construction",
+    ),
+]
+
+
+def run_checks(connection):
+    failures = 0
+    for label, sql, predicate, why in CHECKS:
+        value = connection.execute(sql).fetchone()[0]
+        passed = predicate(value)
+        status = "PASS" if passed else "FAIL"
+        print(f"  [{status}] {label:42} ({value})")
+        if not passed:
+            print(f"         -> {why}")
+            failures += 1
+    return failures
+
+
+def join_rate(connection):
+    """Share of measurable observations that made it into the fact table."""
+    eligible = connection.execute(
+        "SELECT COUNT(DISTINCT service_date || trip_id || stop_id) FROM observation "
+        "WHERE schedule_relationship <> 'ADDED'"
+    ).fetchone()[0]
+    kept = connection.execute("SELECT COUNT(*) FROM fact_passage").fetchone()[0]
+    return 100.0 * kept / eligible if eligible else 0.0
+
+
+def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
+    connection = sqlite3.connect(DB_PATH)
+    print("invariants")
+    failures = run_checks(connection)
+
+    rate = join_rate(connection)
+    passed = rate >= MIN_JOIN_RATE
+    print(f"\n  [{'PASS' if passed else 'FAIL'}] join rate {rate:.2f}% (min {MIN_JOIN_RATE}%)")
+    if not passed:
+        failures += 1
+
+    connection.close()
+
+    print()
+    if failures:
+        print(f"{failures} check(s) FAILED")
+        return 1
+    print("all checks passed")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
