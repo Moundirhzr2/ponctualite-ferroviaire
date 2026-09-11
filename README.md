@@ -265,6 +265,7 @@ précision marginale sur le dernier relevé avant passage.
 - [x] Indicateurs de ponctualité par ligne / gare / tranche horaire
 - [x] Export CSV pour Power BI
 - [x] Contrôles qualité automatisés (structure + choix de méthode)
+- [x] Indicateurs de dispersion (médiane, p90, p99) en complément de la moyenne
 - [x] Procédure de construction du rapport Power BI (`docs/powerbi.md`)
 - [ ] Rapport Power BI (carte des gares, courbe horaire, classement des lignes)
 - [ ] Accumuler plusieurs journées complètes pour valider les comparaisons horaires
