@@ -1,33 +1,39 @@
 table dim_station
+	lineageTag: 4f655700-f008-4324-a563-fc7d78204272
 
 	column stop_id
 		dataType: string
 		isKey
-		sourceColumn: stop_id
+		lineageTag: 485ff875-a4ce-4409-8ff8-1cdedb3f0368
 		summarizeBy: none
+		sourceColumn: stop_id
 
 	column stop_name
 		dataType: string
-		sourceColumn: stop_name
-		summarizeBy: none
+		lineageTag: beef4924-97a6-4a50-a34b-e783d120663b
 		dataCategory: Place
+		summarizeBy: none
+		sourceColumn: stop_name
 
 	column stop_lat
 		dataType: double
-		sourceColumn: stop_lat
-		summarizeBy: none
+		lineageTag: 44c13a00-3b64-4465-93dd-75c598e67db3
 		dataCategory: Latitude
+		summarizeBy: none
+		sourceColumn: stop_lat
 
 	column stop_lon
 		dataType: double
-		sourceColumn: stop_lon
-		summarizeBy: none
+		lineageTag: 71a57922-8cf1-4e8d-a3f5-218434269127
 		dataCategory: Longitude
+		summarizeBy: none
+		sourceColumn: stop_lon
 
 	column parent_station
 		dataType: string
-		sourceColumn: parent_station
+		lineageTag: effa525e-a61f-4107-b593-edfdfee5a396
 		summarizeBy: none
+		sourceColumn: parent_station
 
 	partition dim_station = m
 		mode: import

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "35a358d040010630c09a",
+  "position": {
+    "x": 10,
+    "y": 349,
+    "z": 2,
+    "height": 280,
+    "width": 280,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_station"
+                    }
+                  },
+                  "Property": "stop_name"
+                }
+              },
+              "queryRef": "dim_station.stop_name",
+              "nativeQueryRef": "stop_name",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux ponctualite (min 20 passages)"
+                }
+              },
+              "queryRef": "fact_passage.Taux ponctualite (min 20 passages)",
+              "nativeQueryRef": "Taux ponctualite (min 20 passages)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_passage"
+                  }
+                },
+                "Property": "Taux ponctualite (min 20 passages)"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "934092001c6c1ab8de42",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_station"
+              }
+            },
+            "Property": "stop_name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "a38f0356a75e3579a03d",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_passage"
+              }
+            },
+            "Property": "Taux ponctualite (min 20 passages)"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

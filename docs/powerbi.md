@@ -27,15 +27,46 @@ données. Les bandeaux « Certaines tables ont des données incomplètes » et
 **Actualiser** dans le ruban : les trois tables se chargent et les bandeaux
 disparaissent.
 
-**Les visuels sont à construire dans l'interface** — voir §5. Le générateur
-`powerbi/generate_report.py` sait décrire des visuels, mais le JSON qu'il produit,
-bien que structurellement valide, n'est pas accepté par le moteur de rendu de
-Desktop 2.157 ; le drapeau `INCLUDE_VISUALS` est donc à `False` et la page est
-livrée vide. Poser quatre visuels à la souris prend deux minutes.
+**Le rapport contient déjà trois visuels :**
 
-**À l'enregistrement**, Power BI propose de convertir le rapport vers le format
-PBIR (préversion). La conversion est **irréversible**. Refuser (« Ne pas mettre
-à niveau ») conserve le format que `generate_report.py` sait régénérer.
+| Visuel | Contenu |
+|---|---|
+| Histogramme | Taux de ponctualité par `scheduled_hour` |
+| Barres horizontales | Taux de ponctualité par ligne, tri croissant (les pires en tête) |
+| Barres horizontales | Taux de ponctualité par gare, tri croissant |
+
+**Format :** le rapport a été converti au format PBIR à l'enregistrement. Les
+visuels sont désormais un fichier JSON chacun sous
+`Ponctualite.Report/definition/pages/`, ce qui les rend lisibles en revue de
+code — un `.pbix` ne l'aurait pas permis. La conversion est irréversible.
+
+### Le seuil de représentativité est une mesure, pas un filtre
+
+Classer les lignes par ponctualité sans seuil fait remonter des lignes à deux
+passages, dont le taux ne veut rien dire. Plutôt qu'un filtre visuel, le seuil
+est porté par une mesure :
+
+```dax
+Taux ponctualite (min 20 passages) =
+IF([Passages mesurables] >= 20, [Taux de ponctualite])
+```
+
+Les lignes sous le seuil renvoient `BLANK()` et disparaissent d'elles-mêmes des
+visuels. L'intention est ainsi inscrite dans le modèle et réutilisable partout,
+au lieu d'être enfouie dans le volet de filtres d'un seul visuel.
+
+### Les visuels de carte sont désactivés par défaut
+
+Un visuel *Carte* affiche « Les visuels de carte et de carte remplie sont
+désactivés ». C'est volontaire de la part de Power BI : ces visuels transmettent
+les coordonnées à un service cartographique externe (Bing/Azure Maps).
+L'activation se fait dans *Fichier > Options et paramètres > Options > Global >
+Sécurité*, et revient à accepter cet envoi.
+
+Le rapport n'en dépend pas : la ponctualité par gare est rendue par un
+histogramme, sans service externe. Les colonnes `stop_lat` / `stop_lon` restent
+catégorisées Latitude/Longitude dans le modèle, prêtes à servir si la carte est
+activée.
 
 ### Pièges rencontrés lors de la mise au point
 
@@ -47,7 +78,7 @@ devinables.
 |---|---|
 | `Expected '$schema' property … to follow patterns` | l'URL `$schema` du `.pbip` doit suivre `fabric/pbip/pbipProperties/1.x.x` |
 | `La propriété « description » est inconnue` | les commentaires `///` de TMDL deviennent des descriptions, que les relations n'acceptent pas |
-| `Une erreur s'est produite lors du rendu du rapport` | `report.json` sans `resourcePackages` déclarant le thème de base — échoue même sans aucun visuel |
+| `Une erreur s'est produite lors du rendu du rapport` | `report.json` (format hérité) sans `resourcePackages` déclarant le thème de base — échoue même sans aucun visuel |
 | `dim_station : 8 720 lignes chargées, 8 720 erreurs` | culture `fr-FR` : la virgule y est le séparateur décimal, donc `47.75` est rejeté. Corrigé par le paramètre `"en-US"` de `Table.TransformColumnTypes` |
 
 Le dernier est le plus insidieux : il n'empêche pas l'ouverture, il vide

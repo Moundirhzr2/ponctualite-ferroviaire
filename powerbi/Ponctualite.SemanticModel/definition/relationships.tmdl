@@ -5,3 +5,9 @@ relationship rel_fact_station
 relationship rel_fact_route
 	fromColumn: fact_passage.route_id
 	toColumn: dim_route.route_id
+
+relationship 44705432-0f54-4647-bc19-5b45fff135b4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: fact_passage.service_date
+	toColumn: LocalDateTable_fdb5a621-2c53-41e0-a516-670a11e01003.Date
+

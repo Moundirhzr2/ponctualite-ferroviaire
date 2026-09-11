@@ -1,85 +1,129 @@
 table fact_passage
+	lineageTag: 7d0146fe-273b-45b1-9d57-1f71b181efc7
 
 	measure 'Passages mesurables' = CALCULATE(COUNTROWS(fact_passage), NOT ISBLANK(fact_passage[is_punctual]))
 		formatString: #,0
+		lineageTag: 8abb60b0-954e-4973-9d5e-157ccaac1297
 
 	measure 'Passages ponctuels' = CALCULATE(SUM(fact_passage[is_punctual]), NOT ISBLANK(fact_passage[is_punctual]))
 		formatString: #,0
+		lineageTag: c22ee540-34f8-4cc1-af07-6892e8bc9fa8
 
 	measure 'Taux de ponctualite' = DIVIDE([Passages ponctuels], [Passages mesurables])
 		formatString: 0.0%
+		lineageTag: f55a59a6-9444-49bc-83ab-8df30955238a
 
 	measure 'Retard moyen (min)' = DIVIDE(AVERAGE(fact_passage[arrival_delay_s]), 60)
 		formatString: 0.0
+		lineageTag: 31646d77-c033-49ae-8b5d-a9fe22069dab
 
 	measure 'Trains supprimes' = CALCULATE(COUNTROWS(fact_passage), fact_passage[schedule_relationship] = "CANCELED")
 		formatString: #,0
+		lineageTag: de8da4fd-6fed-4709-8a54-ada387dd96ec
+
+	measure 'Taux ponctualite (min 20 passages)' = IF([Passages mesurables] >= 20, [Taux de ponctualite])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 225edb8a-292f-4d13-8abc-b9c189d5d69a
 
 	column service_date
 		dataType: dateTime
 		formatString: yyyy-mm-dd
-		sourceColumn: service_date
+		lineageTag: fdb3f313-a0d6-4e53-84a9-f4370039c80e
 		summarizeBy: none
+		sourceColumn: service_date
+
+		variation Variation
+			isDefault
+			relationship: 44705432-0f54-4647-bc19-5b45fff135b4
+			defaultHierarchy: LocalDateTable_fdb5a621-2c53-41e0-a516-670a11e01003.'Hiérarchie de dates'
+
+		annotation UnderlyingDateTimeDataType = Date
 
 	column trip_id
 		dataType: string
-		sourceColumn: trip_id
+		lineageTag: d304d468-b6a5-48d0-ab91-71f8aaa738f9
 		summarizeBy: none
+		sourceColumn: trip_id
 
 	column route_id
 		dataType: string
-		sourceColumn: route_id
+		lineageTag: ba4094a2-5b22-497d-bd0c-96c4b6254e20
 		summarizeBy: none
+		sourceColumn: route_id
 
 	column stop_id
 		dataType: string
-		sourceColumn: stop_id
+		lineageTag: 634803c6-3180-4b79-8f79-23a3880949f3
 		summarizeBy: none
+		sourceColumn: stop_id
 
 	column stop_sequence
 		dataType: int64
+		lineageTag: fffd8e13-ca54-47f0-90fd-2347b6b4d0e1
+		summarizeBy: sum
 		sourceColumn: stop_sequence
-		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
 
 	column scheduled_arrival
 		dataType: string
-		sourceColumn: scheduled_arrival
+		lineageTag: 0e0a8d96-679a-4c63-a299-1aa8ec6c9541
 		summarizeBy: none
+		sourceColumn: scheduled_arrival
 
 	column scheduled_minutes
 		dataType: int64
+		lineageTag: 35d03e10-c846-43d6-ad30-f5a7b00ceace
+		summarizeBy: sum
 		sourceColumn: scheduled_minutes
-		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
 
 	column scheduled_hour
 		dataType: int64
+		lineageTag: edb0f3f9-d5aa-46c5-8c19-58d3f3573371
+		summarizeBy: sum
 		sourceColumn: scheduled_hour
-		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
 
 	column arrival_delay_s
 		dataType: int64
+		lineageTag: 0b6adaac-c786-4cb6-9327-0d8038d008ae
+		summarizeBy: sum
 		sourceColumn: arrival_delay_s
-		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
 
 	column departure_delay_s
 		dataType: int64
+		lineageTag: 5793ce42-75e4-4540-97b0-13f9b8afe846
+		summarizeBy: sum
 		sourceColumn: departure_delay_s
-		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
 
 	column schedule_relationship
 		dataType: string
-		sourceColumn: schedule_relationship
+		lineageTag: 8ba4366f-fbcf-453e-aa2c-3aed80efbc70
 		summarizeBy: none
+		sourceColumn: schedule_relationship
 
 	column is_punctual
 		dataType: int64
+		lineageTag: a9eb0cb3-2a19-4551-b14e-16b5b025fb7b
+		summarizeBy: sum
 		sourceColumn: is_punctual
-		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
 
 	column observed_at
 		dataType: int64
+		lineageTag: 52cc8dea-dcbf-4be3-866b-da5abdb02a99
+		summarizeBy: sum
 		sourceColumn: observed_at
-		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
 
 	partition fact_passage = m
 		mode: import

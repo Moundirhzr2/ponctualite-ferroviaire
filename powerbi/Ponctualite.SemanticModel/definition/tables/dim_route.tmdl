@@ -1,30 +1,36 @@
 table dim_route
+	lineageTag: 6d29aba0-7424-4988-8282-3b17a8fb208b
 
 	column route_id
 		dataType: string
 		isKey
-		sourceColumn: route_id
+		lineageTag: dec380d8-e193-4e67-b49a-5670e300e89c
 		summarizeBy: none
+		sourceColumn: route_id
 
 	column route_short_name
 		dataType: string
-		sourceColumn: route_short_name
+		lineageTag: 91436288-e86a-4fa2-911a-85763f629ee2
 		summarizeBy: none
+		sourceColumn: route_short_name
 
 	column route_long_name
 		dataType: string
-		sourceColumn: route_long_name
+		lineageTag: fa868705-f4f1-4a13-9fca-0e7bef6398b8
 		summarizeBy: none
+		sourceColumn: route_long_name
 
 	column mode
 		dataType: string
-		sourceColumn: mode
+		lineageTag: e31777db-f365-4ef9-8e09-f61293c8ec6a
 		summarizeBy: none
+		sourceColumn: mode
 
 	column agency_name
 		dataType: string
-		sourceColumn: agency_name
+		lineageTag: 391f9b0b-948d-45ea-bbeb-3fe546fd87e3
 		summarizeBy: none
+		sourceColumn: agency_name
 
 	partition dim_route = m
 		mode: import

@@ -2,9 +2,19 @@ model Model
 	culture: fr-FR
 	defaultPowerBIDataSourceVersion: powerBI_V3
 	sourceQueryCulture: fr-FR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
 
-	annotation PBI_QueryOrder = ["fact_passage","dim_station","dim_route"]
+annotation PBI_QueryOrder = ["fact_passage","dim_station","dim_route"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode"]
 
 ref table fact_passage
 ref table dim_station
 ref table dim_route
+ref table DateTableTemplate_bc6c8123-4e61-4e68-b8fd-bc21e2c20847
+ref table LocalDateTable_fdb5a621-2c53-41e0-a516-670a11e01003
+

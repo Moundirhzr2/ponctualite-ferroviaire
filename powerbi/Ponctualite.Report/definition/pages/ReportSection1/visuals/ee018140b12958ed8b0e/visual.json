@@ -1,0 +1,107 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "ee018140b12958ed8b0e",
+  "position": {
+    "x": 10,
+    "y": 20,
+    "z": 0,
+    "height": 280,
+    "width": 280,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "scheduled_hour"
+                }
+              },
+              "queryRef": "fact_passage.scheduled_hour",
+              "nativeQueryRef": "scheduled_hour",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux de ponctualite"
+                }
+              },
+              "queryRef": "fact_passage.Taux de ponctualite",
+              "nativeQueryRef": "Taux de ponctualite"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_passage"
+                  }
+                },
+                "Property": "Taux de ponctualite"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "2c1ae8e72c2581c04037",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_passage"
+              }
+            },
+            "Property": "Taux de ponctualite"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "e7f162c4980b4b1c7080",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_passage"
+              }
+            },
+            "Property": "scheduled_hour"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}
