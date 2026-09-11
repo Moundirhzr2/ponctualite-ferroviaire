@@ -1,0 +1,43 @@
+table dim_station
+
+	column stop_id
+		dataType: string
+		isKey
+		sourceColumn: stop_id
+		summarizeBy: none
+
+	column stop_name
+		dataType: string
+		sourceColumn: stop_name
+		summarizeBy: none
+		dataCategory: Place
+
+	column stop_lat
+		dataType: double
+		sourceColumn: stop_lat
+		summarizeBy: none
+		dataCategory: Latitude
+
+	column stop_lon
+		dataType: double
+		sourceColumn: stop_lon
+		summarizeBy: none
+		dataCategory: Longitude
+
+	column parent_station
+		dataType: string
+		sourceColumn: parent_station
+		summarizeBy: none
+
+	partition dim_station = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\Users\Pc MSi\Documents\calude\solea-punctuality\data\export\dim_station.csv"), [Delimiter = ",", Columns = 5, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+					// "en-US" is required: the model culture is fr-FR, which reads "," as the
+					// decimal separator and rejects every "47.75" latitude in the export.
+					Typed = Table.TransformColumnTypes(Headers, {{"stop_id", type text}, {"stop_name", type text}, {"stop_lat", type number}, {"stop_lon", type number}, {"parent_station", type text}}, "en-US")
+				in
+					Typed
+

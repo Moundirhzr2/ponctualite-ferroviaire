@@ -1,0 +1,10 @@
+model Model
+	culture: fr-FR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: fr-FR
+
+	annotation PBI_QueryOrder = ["fact_passage","dim_station","dim_route"]
+
+ref table fact_passage
+ref table dim_station
+ref table dim_route

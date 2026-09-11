@@ -1,9 +1,58 @@
 # Construction du rapport Power BI
 
+Deux chemins. Le projet PBIP (`powerbi/Ponctualite.pbip`) livre le modèle déjà
+câblé — c'est la voie rapide. La construction manuelle reste documentée plus
+bas pour comprendre ce que le projet contient.
+
 Le rapport se construit sur les trois fichiers CSV produits par
 `src/export_powerbi.py` dans `data/export/`. Power BI ne lit SQLite qu'à travers
 un pilote ODBC à installer et configurer séparément ; le CSV évite cette
 dépendance et le rafraîchissement se résume à relancer le script.
+
+## Voie rapide : ouvrir le projet PBIP
+
+```bash
+python src/export_powerbi.py     # les CSV doivent exister
+start powerbi\Ponctualite.pbip
+```
+
+Le format PBIP est textuel (TMDL + JSON), donc versionnable dans Git, à la
+différence du `.pbix` binaire. Le projet arrive avec les trois tables, les deux
+relations, les cinq mesures DAX et les catégories Latitude/Longitude déjà
+définies.
+
+**Au premier lancement :** un PBIP ne stocke que des définitions, jamais de
+données. Les bandeaux « Certaines tables ont des données incomplètes » et
+« Une ou plusieurs relations ont été modifiées » sont normaux. Cliquer
+**Actualiser** dans le ruban : les trois tables se chargent et les bandeaux
+disparaissent.
+
+**Les visuels sont à construire dans l'interface** — voir §5. Le générateur
+`powerbi/generate_report.py` sait décrire des visuels, mais le JSON qu'il produit,
+bien que structurellement valide, n'est pas accepté par le moteur de rendu de
+Desktop 2.157 ; le drapeau `INCLUDE_VISUALS` est donc à `False` et la page est
+livrée vide. Poser quatre visuels à la souris prend deux minutes.
+
+**À l'enregistrement**, Power BI propose de convertir le rapport vers le format
+PBIR (préversion). La conversion est **irréversible**. Refuser (« Ne pas mettre
+à niveau ») conserve le format que `generate_report.py` sait régénérer.
+
+### Pièges rencontrés lors de la mise au point
+
+Ces quatre points ont chacun fait échouer l'ouverture du projet ; ils sont
+corrigés dans les fichiers livrés, et notés ici parce qu'ils ne sont pas
+devinables.
+
+| Symptôme | Cause |
+|---|---|
+| `Expected '$schema' property … to follow patterns` | l'URL `$schema` du `.pbip` doit suivre `fabric/pbip/pbipProperties/1.x.x` |
+| `La propriété « description » est inconnue` | les commentaires `///` de TMDL deviennent des descriptions, que les relations n'acceptent pas |
+| `Une erreur s'est produite lors du rendu du rapport` | `report.json` sans `resourcePackages` déclarant le thème de base — échoue même sans aucun visuel |
+| `dim_station : 8 720 lignes chargées, 8 720 erreurs` | culture `fr-FR` : la virgule y est le séparateur décimal, donc `47.75` est rejeté. Corrigé par le paramètre `"en-US"` de `Table.TransformColumnTypes` |
+
+Le dernier est le plus insidieux : il n'empêche pas l'ouverture, il vide
+seulement la dimension gare, et la carte reste désespérément vide sans message
+d'erreur visible.
 
 ## 1. Préparer les données
 

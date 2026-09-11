@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Ponctualite"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "bc8937d2-cd23-46e4-8b68-2fa1c78130bc"
+  }
+}

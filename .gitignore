@@ -9,3 +9,8 @@ data/punctuality.db
 data/punctuality.db-wal
 data/punctuality.db-shm
 data/export/
+
+# Power BI local artefacts
+powerbi/**/.pbi/
+powerbi/**/*.abf
+powerbi/.tmp*

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Ponctualite"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "120cd83b-3c39-40f5-b3ee-12d0e1cd58a7"
+  }
+}

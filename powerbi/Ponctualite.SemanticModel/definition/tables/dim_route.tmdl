@@ -1,0 +1,38 @@
+table dim_route
+
+	column route_id
+		dataType: string
+		isKey
+		sourceColumn: route_id
+		summarizeBy: none
+
+	column route_short_name
+		dataType: string
+		sourceColumn: route_short_name
+		summarizeBy: none
+
+	column route_long_name
+		dataType: string
+		sourceColumn: route_long_name
+		summarizeBy: none
+
+	column mode
+		dataType: string
+		sourceColumn: mode
+		summarizeBy: none
+
+	column agency_name
+		dataType: string
+		sourceColumn: agency_name
+		summarizeBy: none
+
+	partition dim_route = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\Users\Pc MSi\Documents\calude\solea-punctuality\data\export\dim_route.csv"), [Delimiter = ",", Columns = 5, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+					Typed = Table.TransformColumnTypes(Headers, {{"route_id", type text}, {"route_short_name", type text}, {"route_long_name", type text}, {"mode", type text}, {"agency_name", type text}})
+				in
+					Typed
+

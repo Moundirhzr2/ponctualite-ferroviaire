@@ -1,0 +1,94 @@
+table fact_passage
+
+	measure 'Passages mesurables' = CALCULATE(COUNTROWS(fact_passage), NOT ISBLANK(fact_passage[is_punctual]))
+		formatString: #,0
+
+	measure 'Passages ponctuels' = CALCULATE(SUM(fact_passage[is_punctual]), NOT ISBLANK(fact_passage[is_punctual]))
+		formatString: #,0
+
+	measure 'Taux de ponctualite' = DIVIDE([Passages ponctuels], [Passages mesurables])
+		formatString: 0.0%
+
+	measure 'Retard moyen (min)' = DIVIDE(AVERAGE(fact_passage[arrival_delay_s]), 60)
+		formatString: 0.0
+
+	measure 'Trains supprimes' = CALCULATE(COUNTROWS(fact_passage), fact_passage[schedule_relationship] = "CANCELED")
+		formatString: #,0
+
+	column service_date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		sourceColumn: service_date
+		summarizeBy: none
+
+	column trip_id
+		dataType: string
+		sourceColumn: trip_id
+		summarizeBy: none
+
+	column route_id
+		dataType: string
+		sourceColumn: route_id
+		summarizeBy: none
+
+	column stop_id
+		dataType: string
+		sourceColumn: stop_id
+		summarizeBy: none
+
+	column stop_sequence
+		dataType: int64
+		sourceColumn: stop_sequence
+		summarizeBy: none
+
+	column scheduled_arrival
+		dataType: string
+		sourceColumn: scheduled_arrival
+		summarizeBy: none
+
+	column scheduled_minutes
+		dataType: int64
+		sourceColumn: scheduled_minutes
+		summarizeBy: none
+
+	column scheduled_hour
+		dataType: int64
+		sourceColumn: scheduled_hour
+		summarizeBy: none
+
+	column arrival_delay_s
+		dataType: int64
+		sourceColumn: arrival_delay_s
+		summarizeBy: none
+
+	column departure_delay_s
+		dataType: int64
+		sourceColumn: departure_delay_s
+		summarizeBy: none
+
+	column schedule_relationship
+		dataType: string
+		sourceColumn: schedule_relationship
+		summarizeBy: none
+
+	column is_punctual
+		dataType: int64
+		sourceColumn: is_punctual
+		summarizeBy: none
+
+	column observed_at
+		dataType: int64
+		sourceColumn: observed_at
+		summarizeBy: none
+
+	partition fact_passage = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\Users\Pc MSi\Documents\calude\solea-punctuality\data\export\fact_passage.csv"), [Delimiter = ",", Columns = 13, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+					// "en-US" so the ISO service_date parses under the fr-FR model culture.
+					Typed = Table.TransformColumnTypes(Headers, {{"service_date", type date}, {"trip_id", type text}, {"route_id", type text}, {"stop_id", type text}, {"stop_sequence", Int64.Type}, {"scheduled_arrival", type text}, {"scheduled_minutes", Int64.Type}, {"scheduled_hour", Int64.Type}, {"arrival_delay_s", Int64.Type}, {"departure_delay_s", Int64.Type}, {"schedule_relationship", type text}, {"is_punctual", Int64.Type}, {"observed_at", Int64.Type}}, "en-US")
+				in
+					Typed
+

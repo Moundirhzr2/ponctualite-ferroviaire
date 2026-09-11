@@ -1,0 +1,7 @@
+relationship rel_fact_station
+	fromColumn: fact_passage.stop_id
+	toColumn: dim_station.stop_id
+
+relationship rel_fact_route
+	fromColumn: fact_passage.route_id
+	toColumn: dim_route.route_id
