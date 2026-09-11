@@ -68,6 +68,18 @@ def main():
         FROM fact_passage WHERE is_punctual IS NOT NULL""")
     print(f"  taux           : {rate:.1f}%")
     print(f"  retard moyen   : {avg_delay / 60:.1f} min")
+
+    # Calls still in the future carry a prediction, not an outcome.
+    realized = scalar(connection, """
+        SELECT COUNT(*), 100.0 * AVG(is_punctual)
+        FROM fact_passage WHERE is_punctual IS NOT NULL AND is_past = 1""")
+    predicted = scalar(connection, """
+        SELECT COUNT(*), 100.0 * AVG(is_punctual)
+        FROM fact_passage WHERE is_punctual IS NOT NULL AND is_past = 0""")
+    if realized[0]:
+        print(f"  dont realise   : {realized[1]:.1f}% sur {realized[0]:,} passages effectues")
+    if predicted[0]:
+        print(f"  dont prevu     : {predicted[1]:.1f}% sur {predicted[0]:,} passages a venir")
     print(f"  mediane        : {percentile(connection, 0.50) / 60:.1f} min")
     print(f"  p90            : {percentile(connection, 0.90) / 60:.1f} min")
     print(f"  p99            : {percentile(connection, 0.99) / 60:.1f} min")

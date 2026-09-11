@@ -166,9 +166,11 @@ Mesure du 11/09/2026 sur 17 881 passages exploitables :
 
 | Indicateur | Valeur |
 |---|---|
-| Ponctualité globale (< 5 min) | **93,1 %** |
+| Ponctualité globale (< 5 min) | **91,2 %** |
+| — dont passages effectués | 91,9 % sur 12 901 |
+| — dont passages à venir | 90,0 % sur 8 286 |
 | Retard médian | 0 min |
-| Retard moyen | 1,9 min |
+| Retard moyen | 2,4 min |
 | 9e décile (p90) | 5 min |
 | p99 | **40 min** |
 | Retard maximal | 160 min |
@@ -198,6 +200,33 @@ Lignes les moins ponctuelles sur la période, plusieurs en Grand Est :
 > — contre plus de 6 000 pour 18h et 19h. La comparaison entre tranches horaires
 > ne sera valide qu'après plusieurs journées complètes de collecte.
 
+### 2026-09-11 — Passages effectués et passages à venir : une hypothèse invalidée
+
+Entre deux exports séparés d'une heure, la ponctualité globale est passée de
+93,1 % à 91,2 %, la tranche 20h chutant de 97,3 % à 92,4 % alors que la tranche
+18h ne bougeait presque pas. Hypothèse formulée : le flux temps réel étant
+consulté avant l'heure de passage, les tranches encore à venir portaient des
+prévisions optimistes, corrigées à mesure que les trains passaient réellement.
+
+**Vérification — hypothèse fausse.** En comparant les deux populations
+(`arrival_time` et `observed_at` étant deux horodatages absolus, la comparaison
+ne demande aucun calcul de fuseau) :
+
+| Population | Effectif | Ponctualité | Retard moyen |
+|---|---|---|---|
+| Passage déjà effectué | 12 901 | **91,9 %** | 2,2 min |
+| Passage encore à venir | 8 286 | **90,0 %** | 2,7 min |
+
+Les prévisions sont donc légèrement **plus pessimistes** que les réalisations,
+et non l'inverse. La baisse du taux global s'explique plus simplement : l'export
+suivant portait sur 3 000 passages supplémentaires, couvrant des trajets de
+soirée plus tardifs.
+
+La distinction reste néanmoins pertinente et a été conservée sous la forme d'un
+indicateur `is_past` dans la table de faits : un taux qui mélange des passages
+effectués et des passages à venir mesure en partie des prévisions et non des
+résultats, et les deux populations diffèrent de façon mesurable.
+
 ## Installation
 
 ```bash
@@ -213,6 +242,7 @@ python src/probe_feeds.py       # vérifier qu'un flux contient réellement des 
 python src/reconcile_check.py   # mesurer le taux de jointure GTFS-RT ↔ GTFS
 python src/ingest_sncf.py       # ingestion SNCF vers data/punctuality.db
 python src/load_gtfs.py         # charger le GTFS théorique (tables de référence)
+python src/refresh.py           # tout reconstruire : marts, contrôles, export
 python src/build_marts.py       # construire le schéma en étoile
 python src/quality_checks.py    # vérifier les invariants du modèle
 python src/report.py            # indicateurs de ponctualité en console
@@ -220,11 +250,17 @@ python src/export_powerbi.py    # export CSV pour Power BI
 python src/fetch_rt.py          # collecte Soléa (conservée à titre de trace)
 ```
 
-Enchaînement type après quelques jours de collecte :
+Pour tout remettre à jour, un seul point d'entrée :
 
 ```bash
-python src/build_marts.py && python src/quality_checks.py && python src/report.py && python src/export_powerbi.py
+python src/refresh.py
 ```
+
+Il enchaîne la reconstruction du schéma, le contrôle des invariants puis
+l'export, et **s'arrête à la première erreur**. C'est le point important : si le
+contrôle qualité échoue, l'export n'est pas régénéré, et Power BI continue
+d'afficher les données précédentes plutôt qu'un résultat douteux. Exporter après
+un contrôle en échec produirait un rapport d'apparence normale et faux.
 
 `quality_checks.py` sort en code 1 si un invariant est rompu ; un rapport ne
 doit pas être construit sur un modèle qui échoue. Outre les contrôles

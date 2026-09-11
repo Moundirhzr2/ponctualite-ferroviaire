@@ -66,6 +66,12 @@ CHECKS = [
         "a passage with no schedule cannot be measured against one",
     ),
     (
+        "is_past is 0 or 1",
+        "SELECT COUNT(*) FROM fact_passage WHERE is_past NOT IN (0, 1)",
+        lambda n: n == 0,
+        "the flag separates realized calls from predicted ones and must stay boolean",
+    ),
+    (
         "cancelled trips excluded from the rate",
         """SELECT COUNT(*) FROM fact_passage
            WHERE schedule_relationship = 'CANCELED' AND is_punctual IS NOT NULL""",

@@ -79,7 +79,18 @@ STATEMENTS = [
             WHEN o.arrival_delay <= {PUNCTUALITY_THRESHOLD_S} THEN 1
             ELSE 0
         END                                        AS is_punctual,
-        o.observed_at
+        MAX(o.arrival_time)                        AS arrival_time,
+        -- Has this call actually happened yet? arrival_time and observed_at are
+        -- both absolute unix timestamps from the feed, so this needs no timezone
+        -- arithmetic. A rate computed over calls that are still in the future is
+        -- measuring predictions rather than outcomes; the two populations differ
+        -- measurably, so they are separable rather than silently pooled.
+        CASE
+            WHEN MAX(o.arrival_time) IS NULL                THEN 0
+            WHEN MAX(o.arrival_time) <= MAX(o.observed_at)  THEN 1
+            ELSE 0
+        END                                        AS is_past,
+        MAX(o.observed_at)                         AS observed_at
     FROM observation o
     JOIN gtfs_trip t      ON t.trip_id = o.trip_id
     JOIN gtfs_stop_time st ON st.trip_id = o.trip_id AND st.stop_id = o.stop_id
