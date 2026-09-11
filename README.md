@@ -235,6 +235,29 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+Puis, dans l'ordre, pour repartir de zéro :
+
+```bash
+python src/ingest_sncf.py       # au moins une collecte
+python src/load_gtfs.py         # après avoir placé le GTFS dans data/gtfs/
+python src/refresh.py           # marts + contrôles + export
+```
+
+Le GTFS théorique n'est pas versionné (4 Mo, renouvelé régulièrement) :
+le télécharger depuis
+[transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/horaires-sncf)
+vers `data/gtfs/sncf-gtfs.zip`.
+
+### Après un clone : le chemin des données Power BI
+
+Power BI n'accepte pas de chemin relatif dans `File.Contents`. Le dossier des
+CSV est donc porté par un paramètre `DataFolder`, dont la valeur par défaut
+pointe vers la machine de développement. Après un clone, l'ajuster une fois :
+*Transformer les données > Modifier les paramètres > DataFolder*, en indiquant
+le chemin absolu de `data/export`, puis *Actualiser*.
+
+C'est le seul réglage machine-dépendant du projet.
+
 ## Utilisation
 
 ```bash

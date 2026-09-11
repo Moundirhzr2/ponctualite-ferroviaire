@@ -1,0 +1,8 @@
+/// Dossier contenant les CSV produits par src/export_powerbi.py.
+/// Power BI n'accepte pas de chemin relatif dans File.Contents : un clone du
+/// depot doit donc renseigner ce parametre une fois, via Transformer les
+/// donnees > Modifier les parametres.
+expression DataFolder = "C:\Users\Pc MSi\Documents\calude\solea-punctuality\data\export" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 6f3a9c21-8b47-4e52-9d10-3a5c7e1b4d68
+
+	annotation PBI_ResultType = Text
