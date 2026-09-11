@@ -125,14 +125,26 @@ table fact_passage
 
 		annotation SummarizationSetBy = Automatic
 
+	column arrival_time
+		dataType: int64
+		lineageTag: 1c4f0a92-7d55-4b8e-9a31-6f0e2d8b4417
+		summarizeBy: none
+		sourceColumn: arrival_time
+
+	column is_past
+		dataType: int64
+		lineageTag: 8e2b5d61-04a7-4f39-bb52-c9d31a7e6f80
+		summarizeBy: none
+		sourceColumn: is_past
+
 	partition fact_passage = m
 		mode: import
 		source =
 				let
-					Source = Csv.Document(File.Contents("C:\Users\Pc MSi\Documents\calude\solea-punctuality\data\export\fact_passage.csv"), [Delimiter = ",", Columns = 13, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Source = Csv.Document(File.Contents("C:\Users\Pc MSi\Documents\calude\solea-punctuality\data\export\fact_passage.csv"), [Delimiter = ",", Columns = 15, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
 					Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
 					// "en-US" so the ISO service_date parses under the fr-FR model culture.
-					Typed = Table.TransformColumnTypes(Headers, {{"service_date", type date}, {"trip_id", type text}, {"route_id", type text}, {"stop_id", type text}, {"stop_sequence", Int64.Type}, {"scheduled_arrival", type text}, {"scheduled_minutes", Int64.Type}, {"scheduled_hour", Int64.Type}, {"arrival_delay_s", Int64.Type}, {"departure_delay_s", Int64.Type}, {"schedule_relationship", type text}, {"is_punctual", Int64.Type}, {"observed_at", Int64.Type}}, "en-US")
+					Typed = Table.TransformColumnTypes(Headers, {{"service_date", type date}, {"trip_id", type text}, {"route_id", type text}, {"stop_id", type text}, {"stop_sequence", Int64.Type}, {"scheduled_arrival", type text}, {"scheduled_minutes", Int64.Type}, {"scheduled_hour", Int64.Type}, {"arrival_delay_s", Int64.Type}, {"departure_delay_s", Int64.Type}, {"schedule_relationship", type text}, {"is_punctual", Int64.Type}, {"arrival_time", Int64.Type}, {"is_past", Int64.Type}, {"observed_at", Int64.Type}}, "en-US")
 				in
 					Typed
 
