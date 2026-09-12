@@ -227,6 +227,51 @@ indicateur `is_past` dans la table de faits : un taux qui mélange des passages
 effectués et des passages à venir mesure en partie des prévisions et non des
 résultats, et les deux populations diffèrent de façon mesurable.
 
+### 2026-09-12 — Le référentiel est une fenêtre glissante : une correction qui a aggravé les choses
+
+Le taux de jointure global est passé de 99,84 % à 99,16 %. Diagnostic posé : GTFS
+théorique périmé — la copie locale datait du 11, la SNCF en avait publié une
+nouvelle le 12. Correction appliquée : télécharger l'export récent et remplacer
+l'ancien.
+
+**Résultat, mesuré jour par jour :**
+
+| Jour | GTFS du 11 | Après remplacement |
+|---|---|---|
+| vendredi 11 | 99,85 % | **94,45 %** |
+| samedi 12 | 98,38 % | 98,33 % |
+
+La correction a cassé vendredi sans réparer samedi. Deux erreurs :
+
+- **L'export SNCF est une fenêtre glissante.** Chaque version démarre à sa date de
+  publication (`feed_start_date` 20260912) et abandonne les trajets antérieurs.
+  Remplacer la copie a donc orphelinisé les observations de la veille — et le
+  remplacement atomique avait supprimé l'ancienne version.
+- **Le contrôle qualité mesurait un taux agrégé.** À 96,28 %, il passait le seuil
+  de 95 % : une journée à 94 % se cachait derrière une journée saine.
+
+**Correction réelle.** Les versions précédentes étaient récupérables dans
+l'historique de transport.data.gouv.fr (les 25 dernières y sont archivées).
+Trois ont été récupérées et validées. Le référentiel est désormais **historisé** :
+
+- `download_gtfs.py` archive chaque publication sous son horodatage dans
+  `data/gtfs/versions/` et n'écrase jamais rien ;
+- `load_gtfs.py` applique les versions dans l'ordre de `feed_version`. Un trajet
+  présent dans une version récente en reprend entièrement la définition (sa
+  séquence d'arrêts est remplacée, pas fusionnée) ; un trajet absent des versions
+  récentes est conservé, puisque des observations y renvoient encore. Le
+  chargement est incrémental ;
+- `quality_checks.py` contrôle le taux de jointure **par jour de service**.
+
+| Jour | Après historisation |
+|---|---|
+| vendredi 11 | **99,85 %** |
+| samedi 12 | **99,92 %** |
+
+Samedi dépasse même son niveau initial : les trajets qui manquaient figuraient
+dans la version du 11, absente de l'export du 12. Seule l'accumulation des
+versions pouvait les retrouver.
+
 ## Installation
 
 ```bash
@@ -239,14 +284,16 @@ Puis, dans l'ordre, pour repartir de zéro :
 
 ```bash
 python src/ingest_sncf.py       # au moins une collecte
-python src/load_gtfs.py         # après avoir placé le GTFS dans data/gtfs/
-python src/refresh.py           # marts + contrôles + export
+python src/refresh.py           # GTFS + marts + contrôles + export
 ```
 
-Le GTFS théorique n'est pas versionné (4 Mo, renouvelé régulièrement) :
-le télécharger depuis
-[transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/horaires-sncf)
-vers `data/gtfs/sncf-gtfs.zip`.
+`refresh.py` télécharge lui-même le GTFS théorique s'il en existe une nouvelle
+publication. Les versions sont archivées dans `data/gtfs/versions/`, non
+versionné dans Git (≈ 4 Mo par jour). Pour couvrir des observations antérieures
+à la première collecte, récupérer les versions correspondantes dans la section
+« Ressources historisées » de la
+[page du jeu de données](https://transport.data.gouv.fr/datasets/horaires-sncf)
+et les déposer dans ce dossier.
 
 ### Après un clone : le chemin des données Power BI
 

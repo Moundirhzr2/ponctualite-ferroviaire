@@ -21,7 +21,15 @@ import requests
 from google.transit import gtfs_realtime_pb2
 
 ROOT = Path(__file__).resolve().parent.parent
-GTFS_ZIP = ROOT / "data" / "gtfs" / "sncf-gtfs.zip"
+VERSIONS = ROOT / "data" / "gtfs" / "versions"
+
+
+def latest_version():
+    """The live feed is compared with the newest archived schedule."""
+    archives = sorted(VERSIONS.glob("*.zip"))
+    if not archives:
+        raise SystemExit(f"no GTFS version in {VERSIONS} - run download_gtfs.py first")
+    return archives[-1]
 RT_URL = "https://proxy.transport.data.gouv.fr/resource/sncf-gtfs-rt-trip-updates"
 
 # gtfs-realtime TripDescriptor.ScheduleRelationship
@@ -66,7 +74,7 @@ def live_trips(url):
 
 
 def main():
-    known_trips, known_stops = static_ids(GTFS_ZIP)
+    known_trips, known_stops = static_ids(latest_version())
     print(f"static GTFS: {len(known_trips):,} trips, {len(known_stops):,} stops")
 
     trips, stops = live_trips(RT_URL)

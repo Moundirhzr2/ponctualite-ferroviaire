@@ -100,14 +100,24 @@ def run_checks(connection):
     return failures
 
 
-def join_rate(connection):
-    """Share of measurable observations that made it into the fact table."""
-    eligible = connection.execute(
-        "SELECT COUNT(DISTINCT service_date || trip_id || stop_id) FROM observation "
-        "WHERE schedule_relationship <> 'ADDED'"
-    ).fetchone()[0]
-    kept = connection.execute("SELECT COUNT(*) FROM fact_passage").fetchone()[0]
-    return 100.0 * kept / eligible if eligible else 0.0
+def join_rates_by_day(connection):
+    """Share of measurable observations that reached the fact table, per service day.
+
+    Checked per day, never in aggregate. An aggregate hides a broken day behind
+    healthy ones: on 2026-09-12 a reference reload dropped Friday to 94.45%
+    while the pooled rate read 96.28% and passed.
+    """
+    eligible = dict(connection.execute("""
+        SELECT service_date, COUNT(DISTINCT trip_id || '|' || stop_id)
+        FROM observation WHERE schedule_relationship <> 'ADDED'
+        GROUP BY service_date"""))
+    kept = dict(connection.execute(
+        "SELECT service_date, COUNT(*) FROM fact_passage GROUP BY service_date"
+    ))
+    return {
+        day: 100.0 * kept.get(day, 0) / total
+        for day, total in sorted(eligible.items()) if total
+    }
 
 
 def main():
@@ -118,11 +128,12 @@ def main():
     print("invariants")
     failures = run_checks(connection)
 
-    rate = join_rate(connection)
-    passed = rate >= MIN_JOIN_RATE
-    print(f"\n  [{'PASS' if passed else 'FAIL'}] join rate {rate:.2f}% (min {MIN_JOIN_RATE}%)")
-    if not passed:
-        failures += 1
+    print(f"\n  join rate per service day (min {MIN_JOIN_RATE}% each)")
+    for day, rate in join_rates_by_day(connection).items():
+        passed = rate >= MIN_JOIN_RATE
+        print(f"  [{'PASS' if passed else 'FAIL'}] {day}  {rate:.2f}%")
+        if not passed:
+            failures += 1
 
     connection.close()
 

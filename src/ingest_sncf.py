@@ -94,7 +94,10 @@ def setup_logging():
 
 def connect():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(DB_PATH)
+    # SQLite allows one writer. The default 5 s wait makes a scheduled run fail
+    # outright if it lands during a reference reload; waiting it out is cheaper
+    # than losing five minutes of observations.
+    connection = sqlite3.connect(DB_PATH, timeout=120)
     connection.executescript(SCHEMA)
     return connection
 
