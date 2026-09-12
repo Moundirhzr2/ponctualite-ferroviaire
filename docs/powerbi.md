@@ -31,29 +31,48 @@ disparaissent.
 
 | Visuel | Contenu |
 |---|---|
-| Histogramme | Taux de ponctualité par `scheduled_hour` |
-| Barres horizontales | Taux de ponctualité par ligne, tri croissant (les pires en tête) |
-| Barres horizontales | Taux de ponctualité par gare, tri croissant |
+| Histogramme, pleine largeur | `Taux ponctualite observe` par `scheduled_hour` |
+| Barres horizontales | `Taux ponctualite observe` par ligne, tri croissant (les pires en tête) |
+| Barres horizontales | `Taux ponctualite observe` par gare, tri croissant |
+
+Les trois visuels utilisent la même mesure. Leurs classements sont identiques,
+position par position, à ceux de `src/report.py`.
 
 **Format :** le rapport a été converti au format PBIR à l'enregistrement. Les
 visuels sont désormais un fichier JSON chacun sous
 `Ponctualite.Report/definition/pages/`, ce qui les rend lisibles en revue de
 code — un `.pbix` ne l'aurait pas permis. La conversion est irréversible.
 
-### Le seuil de représentativité est une mesure, pas un filtre
-
-Classer les lignes par ponctualité sans seuil fait remonter des lignes à deux
-passages, dont le taux ne veut rien dire. Plutôt qu'un filtre visuel, le seuil
-est porté par une mesure :
+### Une seule mesure porte toutes les règles de population
 
 ```dax
-Taux ponctualite (min 20 passages) =
-IF([Passages mesurables] >= 20, [Taux de ponctualite])
+Taux ponctualite observe =
+VAR Observed =
+    CALCULATE([Passages mesurables], fact_passage[is_collected] = 1, fact_passage[is_past] = 1)
+RETURN
+    IF(Observed >= 20,
+       CALCULATE([Taux de ponctualite], fact_passage[is_collected] = 1, fact_passage[is_past] = 1))
 ```
 
-Les lignes sous le seuil renvoient `BLANK()` et disparaissent d'elles-mêmes des
-visuels. L'intention est ainsi inscrite dans le modèle et réutilisable partout,
-au lieu d'être enfouie dans le volet de filtres d'un seul visuel.
+Elle réunit trois règles qui, dispersées dans des filtres de visuels, se
+perdraient à la première modification :
+
+- **passages effectués** (`is_past`) : un passage encore à venir porte une
+  prévision, pas un résultat ;
+- **heures surveillées** (`is_collected`) : un passage vu seulement après coup
+  appartient à un trajet encore en circulation à la reprise de la collecte, donc
+  à un train long — échantillon biaisé qui affichait 88,5 % contre 92,6 % ;
+- **au moins 20 passages** : en dessous, le taux ne veut rien dire et la mesure
+  renvoie `BLANK()`, si bien que l'élément disparaît de lui-même du visuel.
+
+L'intention est inscrite dans le modèle — description de la mesure comprise — et
+réutilisable partout, au lieu d'être enfouie dans le volet de filtres d'un seul
+visuel.
+
+**Regroupement par nom.** Les axes utilisent les noms de ligne et de gare, que
+Power BI regroupe sans tenir compte de la casse. C'est le bon choix : la SNCF
+découpe certaines lignes en plusieurs `route_id` et en écrit certaines en deux
+casses. `report.py` a été aligné sur ce comportement.
 
 ### Les visuels de carte sont désactivés par défaut
 

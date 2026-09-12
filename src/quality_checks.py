@@ -66,6 +66,22 @@ CHECKS = [
         "a passage with no schedule cannot be measured against one",
     ),
     (
+        "is_collected is 0 or 1",
+        "SELECT COUNT(*) FROM fact_passage WHERE is_collected NOT IN (0, 1)",
+        lambda n: n == 0,
+        "the flag excludes survivorship samples from hourly figures and must stay boolean",
+    ),
+    (
+        "no collected call in an unwatched hour",
+        """SELECT COUNT(*) FROM fact_passage f
+           WHERE f.is_collected = 1 AND NOT EXISTS (
+               SELECT 1 FROM dim_collection_hour h
+               WHERE h.service_date = date(f.service_date, '+' || (f.scheduled_minutes / 1440) || ' days')
+                 AND h.hour = f.scheduled_hour AND h.coverage_pct >= 50)""",
+        lambda n: n == 0,
+        "a call flagged as collected must fall in an hour the collector watched",
+    ),
+    (
         "is_past is 0 or 1",
         "SELECT COUNT(*) FROM fact_passage WHERE is_past NOT IN (0, 1)",
         lambda n: n == 0,

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "punctuality.db"
 EXPORT_DIR = ROOT / "data" / "export"
 
-TABLES = ["fact_passage", "dim_station", "dim_route"]
+TABLES = ["fact_passage", "dim_station", "dim_route", "dim_collection_hour"]
 
 
 def export(connection, table, directory):

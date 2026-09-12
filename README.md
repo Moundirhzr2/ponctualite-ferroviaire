@@ -13,7 +13,7 @@ ligne, par gare et par tranche horaire — avec un focus Grand Est
 
 | Source | Format | Contenu |
 |---|---|---|
-| [Horaires théoriques SNCF](https://transport.data.gouv.fr/datasets/horaires-sncf) | GTFS | 39 040 trajets, 8 720 arrêts — validité 10/09/2026 → 28/02/2027 |
+| [Horaires théoriques SNCF](https://transport.data.gouv.fr/datasets/horaires-sncf) | GTFS | Versions quotidiennes archivées et appliquées successivement (fenêtre glissante, voir journal du 12/09) |
 | [SNCF GTFS-RT Trip Updates](https://proxy.transport.data.gouv.fr/resource/sncf-gtfs-rt-trip-updates) | GTFS-RT | ~2 240 trajets et ~20 300 prévisions d'arrêt par appel |
 
 ## Qualité des données — ce qui a été mesuré
@@ -129,77 +129,6 @@ Sur un instantané de 18 031 arrivées observées :
 observé : 160 minutes. Chiffre provisoire — il porte sur un instantané et non
 sur une journée complète consolidée.
 
-## Modèle de données
-
-Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
-
-```
-                dim_route                     dim_station
-          (route_id, nom, mode,          (stop_id, nom, lat, lon,
-            agency_name)                    parent_station)
-                    \                              /
-                     \                            /
-                      +------ fact_passage ------+
-        service_date, trip_id, route_id, stop_id, stop_sequence,
-        scheduled_arrival, scheduled_hour, arrival_delay_s,
-        schedule_relationship, is_punctual, observed_at
-```
-
-Une ligne de `fact_passage` = un passage observé en gare, avec le retard mesuré
-et l'horaire théorique auquel il est comparé.
-
-**Choix de méthode, qui conditionnent la lecture des chiffres :**
-
-- Les trajets `ADDED` n'ont pas d'horaire théorique par construction : ils sont
-  exclus de la table de faits (20 166 passages retenus sur 20 877 observations).
-- Les trajets supprimés sont **conservés** dans la table de faits mais **exclus**
-  des indicateurs (`is_punctual` à `NULL`) : un train supprimé n'est pas un train
-  en retard, et l'intégrer à une moyenne embellit le résultat sans le dire.
-- Le seuil de ponctualité est de 5 minutes à l'arrivée, appliqué **par passage en
-  gare** et non par trajet.
-- `stop_sequence` provient du GTFS théorique, le flux temps réel ne l'alimentant
-  pas (voir journal).
-
-## Résultats
-
-Mesure du 11/09/2026 sur 17 881 passages exploitables :
-
-| Indicateur | Valeur |
-|---|---|
-| Ponctualité globale (< 5 min) | **91,2 %** |
-| — dont passages effectués | 91,9 % sur 12 901 |
-| — dont passages à venir | 90,0 % sur 8 286 |
-| Retard médian | 0 min |
-| Retard moyen | 2,4 min |
-| 9e décile (p90) | 5 min |
-| p99 | **40 min** |
-| Retard maximal | 160 min |
-| Focus Grand Est | 91,6 % sur 2 467 passages |
-| Gare de Mulhouse | 92,7 % sur 41 passages |
-
-La moyenne seule induit en erreur : à 1,9 minute elle suggère un réseau
-régulier, alors que la médiane est nulle — la majorité des trains sont à
-l'heure — et que le dernier centile dépasse 40 minutes. Ce sont deux
-descriptions exactes du même jeu de données, et seule la seconde décrit ce que
-vit un voyageur en retard. Les trois indicateurs sont donc publiés ensemble.
-
-Ponctualité par tranche horaire — la pointe de fin d'après-midi se dégrade
-nettement, le réseau se rétablit en soirée :
-
-| Heure | 16h | 17h | 18h | 19h | 20h | 21h |
-|---|---|---|---|---|---|---|
-| Taux | 88,8 % | 91,7 % | 91,0 % | 95,4 % | 97,3 % | 95,2 % |
-
-Lignes les moins ponctuelles sur la période, plusieurs en Grand Est :
-`Ambérieu – Mâcon` (28,9 %), `Lille Flandres – Amiens` (33,3 %),
-`Strasbourg – Wissembourg` (42,5 %), `Strasbourg – Saint-Dié – Épinal` (53,3 %).
-
-> **Limite importante :** ces chiffres portent sur une collecte démarrée en fin
-> de journée. Les tranches horaires antérieures à 17h ne comptent que quelques
-> dizaines de passages — des trajets déjà accomplis encore présents dans le flux
-> — contre plus de 6 000 pour 18h et 19h. La comparaison entre tranches horaires
-> ne sera valide qu'après plusieurs journées complètes de collecte.
-
 ### 2026-09-11 — Passages effectués et passages à venir : une hypothèse invalidée
 
 Entre deux exports séparés d'une heure, la ponctualité globale est passée de
@@ -272,6 +201,156 @@ Samedi dépasse même son niveau initial : les trajets qui manquaient figuraient
 dans la version du 11, absente de l'export du 12. Seule l'accumulation des
 versions pouvait les retrouver.
 
+### 2026-09-12 — Les heures non collectées se faisaient passer pour des mesures
+
+Le collecteur tourne sur un poste personnel et s'arrête avec lui. Sur ses 27
+premières heures, il a été **à l'arrêt 62 % du temps** (vendredi 20:02 → 23:57,
+samedi 08:07 → 20:26).
+
+Ces trous ne se voyaient pas comme des trous. Le flux conserve les arrêts déjà
+desservis d'un trajet tant que le train roule : à la reprise de la collecte, des
+passages de l'après-midi restent visibles — mais seulement ceux des trains
+**encore en circulation**, donc les plus longs. Vendredi, collecte démarrée à
+18:50 :
+
+| Heure | Passages effectués | Durée moyenne du trajet | Trajets > 3 h | Ponctualité apparente |
+|---|---|---|---|---|
+| 14h | 45 | 378 min | 100 % | 75,6 % |
+| 16h | 303 | 233 min | 61 % | 88,8 % |
+| 18h | 6 167 | 94 min | 7 % | 90,4 % |
+| 19h | 5 545 | 94 min | 8 % | 92,8 % |
+
+La « dégradation de fin d'après-midi » affichée dans les premières versions de
+ce document était un **biais de survie** : elle décrivait les trains longs, pas
+le réseau à 14h. Même mécanisme à 21h, après l'arrêt de la collecte.
+
+**Correction :**
+
+- `dim_collection_hour` enregistre, pour chaque heure de chaque jour, la part de
+  l'heure pendant laquelle le collecteur tournait. Heure de Paris via `tzdata`,
+  donc juste aux changements d'heure ; une heure manquée est un zéro explicite,
+  pas une ligne absente.
+- `fact_passage.is_collected` marque les passages survenus pendant une heure
+  surveillée (au moins 50 %), jugée **jour par jour**, jamais en moyenne sur
+  plusieurs jours. Un horaire GTFS au-delà de 24:00 est rattaché au jour civil
+  suivant.
+- **Tous les taux** — global, horaire, classements — portent désormais sur les
+  passages *observés* : `is_past = 1` et `is_collected = 1`. Une seule
+  définition, appliquée à l'identique par `report.py` et par la mesure Power BI
+  `Taux ponctualite observe`.
+
+Le biais se chiffre : **88,5 %** de ponctualité sur les passages vus après coup,
+contre **92,6 %** sur les passages observés. Et il ne touchait pas que la courbe
+horaire : `Francfort – Marseille`, en tête des pires lignes avec 36 passages,
+n'en compte que 3 réellement observés — trop peu pour être classée.
+
+Recouper les classements SQL et Power BI a révélé deux autres écarts, corrigés
+côté SQL :
+
+- la SNCF découpe certaines lignes en plusieurs `route_id`. Classer les fragments
+  séparément faisait passer sous le seuil de 20 passages un fragment en retard,
+  qui disparaissait du classement : `32. Ussel – Brive – Périgueux – Bordeaux`
+  affichait 60,0 % sur son fragment principal pour 53,9 % sur la ligne entière ;
+- certains noms existent en deux casses (`STRASBOURG – NIEDERBRONN…` et
+  `Strasbourg – Niederbronn…`). Power BI regroupe le texte sans tenir compte de
+  la casse, SQLite si.
+
+Les dix premières lignes et les dix premières gares sont désormais identiques
+dans les deux outils.
+
+## Modèle de données
+
+Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
+
+```
+     dim_route                 dim_station              dim_collection_hour
+ (route_id, nom, mode,     (stop_id, nom, lat, lon,   (service_date, hour,
+   agency_name)              parent_station)           runs, coverage_pct)
+          \                        /                            :
+           \                      /                   calcule is_collected
+            +---- fact_passage --+ . . . . . . . . . . . . . . . :
+   service_date, trip_id, route_id, stop_id, stop_sequence,
+   scheduled_arrival, scheduled_hour, arrival_delay_s, arrival_time,
+   schedule_relationship, is_punctual, is_past, is_collected, observed_at
+```
+
+Une ligne de `fact_passage` = un passage en gare, avec le retard relevé et
+l'horaire théorique auquel il est comparé.
+
+**Choix de méthode, qui conditionnent la lecture des chiffres :**
+
+- Les trajets `ADDED` n'ont pas d'horaire théorique par construction : ils sont
+  exclus de la table de faits.
+- Les trajets supprimés sont **conservés** dans la table de faits mais **exclus**
+  des indicateurs (`is_punctual` à `NULL`) : un train supprimé n'est pas un train
+  en retard, et l'intégrer à une moyenne embellit le résultat sans le dire.
+- Le seuil de ponctualité est de 5 minutes à l'arrivée, appliqué **par passage en
+  gare** et non par trajet.
+- Les taux portent sur les **passages observés** : déjà effectués (`is_past`) et
+  survenus pendant une heure où le collecteur tournait (`is_collected`). Les
+  passages vus après coup forment un échantillon biaisé vers les trains longs
+  (voir journal du 12/09).
+- Lignes et gares sont regroupées par nom, sans tenir compte de la casse, et non
+  par identifiant.
+- `stop_sequence` provient du GTFS théorique, le flux temps réel ne l'alimentant
+  pas (voir journal).
+
+## Résultats
+
+Mesure du 12/09/2026 sur deux jours de service, vendredi 11 et samedi 12 :
+**21 793 passages observés**, c'est-à-dire effectués pendant une heure où le
+collecteur tournait.
+
+| Indicateur | Valeur |
+|---|---|
+| Ponctualité (< 5 min) | **92,6 %** |
+| Retard médian | 0 min |
+| Retard moyen | 1,9 min |
+| 9e décile (p90) | 5 min |
+| p99 | **30 min** |
+| Retard maximal | 220 min |
+| Focus Grand Est | 92,8 % sur 3 684 passages |
+| Gare de Mulhouse | 95,5 % sur 44 passages |
+
+Populations écartées du taux, pour comparaison :
+
+| Population | Ponctualité | Passages |
+|---|---|---|
+| Tous passages mesurables confondus | 91,9 % | 42 587 |
+| Vus après coup (heure non surveillée) | **88,5 %** | 5 305 |
+| Encore à venir (prévision) | 92,0 % | 15 489 |
+
+La moyenne seule induit en erreur : à 1,9 minute elle suggère un réseau
+régulier, alors que la médiane est nulle — la majorité des trains sont à
+l'heure — et que le dernier centile atteint 30 minutes. Ce sont deux
+descriptions exactes des mêmes données, et seule la seconde décrit ce que vit un
+voyageur en retard. Les trois indicateurs sont donc publiés ensemble.
+
+**Par tranche horaire**, sur les seules heures surveillées :
+
+| Heure | 05h | 06h | 07h | 18h | 19h | 20h | 21h |
+|---|---|---|---|---|---|---|---|
+| Taux | 95,8 % | 94,4 % | 95,2 % | 90,4 % | 92,8 % | 92,5 % | 92,3 % |
+| Passages | 335 | 1 757 | 3 368 | 6 167 | 5 545 | 2 487 | 1 764 |
+
+Les tranches de 08h à 17h et de 22h à 23h n'ont été surveillées aucun des deux
+jours : elles ne sont pas publiées.
+
+**Lignes les moins ponctuelles** (passages observés, au moins 20) :
+`Ambérieu – Mâcon` (32,6 % sur 43), `41. Bordeaux – Arcachon` (40,9 % sur 22),
+`Douai – Cambrai` (43,3 % sur 30), `Clermont-Ferrand – Montluçon` (52,5 % sur
+59). En Grand Est, `Strasbourg – Wissembourg` (57,7 % sur 52) figure parmi les
+dix pires lignes avant comme après correction du biais : le constat y résiste.
+
+**Gares les moins ponctuelles** : `Bischwiller` (60,7 % sur 28, Bas-Rhin),
+`Aéroport Charles de Gaulle 2 TGV` (71,4 % sur 21), `Pessac` (77,8 % sur 27).
+
+> **Limites.** Deux jours seulement — un vendredi soir et un samedi matin —, et
+> **chaque tranche horaire repose sur une seule journée** : aucune comparaison
+> entre le matin et le soir n'est encore publiable. Les classements portent sur
+> 20 à 80 passages par ligne. Tant que la collecte dépend d'un poste personnel,
+> elle gardera des trous : c'est la prochaine étape technique.
+
 ## Installation
 
 ```bash
@@ -311,8 +390,9 @@ C'est le seul réglage machine-dépendant du projet.
 python src/probe_feeds.py       # vérifier qu'un flux contient réellement des données
 python src/reconcile_check.py   # mesurer le taux de jointure GTFS-RT ↔ GTFS
 python src/ingest_sncf.py       # ingestion SNCF vers data/punctuality.db
-python src/load_gtfs.py         # charger le GTFS théorique (tables de référence)
-python src/refresh.py           # tout reconstruire : marts, contrôles, export
+python src/refresh.py           # tout reconstruire : GTFS, marts, contrôles, export
+python src/download_gtfs.py     # archiver la dernière publication du GTFS théorique
+python src/load_gtfs.py         # appliquer les versions GTFS archivées (incrémental)
 python src/build_marts.py       # construire le schéma en étoile
 python src/quality_checks.py    # vérifier les invariants du modèle
 python src/report.py            # indicateurs de ponctualité en console
@@ -344,8 +424,8 @@ paraisse anormal.
 La construction du rapport Power BI est décrite dans
 [`docs/powerbi.md`](docs/powerbi.md) : import, relations, mesures DAX et visuels.
 
-`load_gtfs.py` n'est à relancer qu'au rafraîchissement de l'archive GTFS
-théorique (validité affichée sur transport.data.gouv.fr).
+`refresh.py` récupère et applique d'elle-même toute nouvelle publication du GTFS
+théorique.
 
 ### Collecte planifiée (Windows)
 
@@ -366,13 +446,12 @@ précision marginale sur le dernier relevé avant passage.
 - [x] Vérifier qu'un flux temps réel exploitable existe
 - [x] Mesurer le taux de jointure temps réel ↔ théorique
 - [x] Ingestion SNCF : décodage et stockage des observations
-- [x] Chargement du GTFS théorique en tables de référence
-- [x] Modélisation en étoile (fait : passage observé vs théorique ; dims : ligne, gare)
-- [x] Indicateurs de ponctualité par ligne / gare / tranche horaire
-- [x] Export CSV pour Power BI
-- [x] Contrôles qualité automatisés (structure + choix de méthode)
+- [x] Référentiel GTFS historisé (fenêtre glissante SNCF)
+- [x] Modélisation en étoile (fait : passage vs horaire théorique ; dims : ligne, gare, heure collectée)
+- [x] Indicateurs de ponctualité par ligne, gare et tranche horaire, sur les seuls passages observés
+- [x] Contrôles qualité automatisés (structure, choix de méthode, jointure par jour)
 - [x] Indicateurs de dispersion (médiane, p90, p99) en complément de la moyenne
-- [x] Procédure de construction du rapport Power BI (`docs/powerbi.md`)
-- [ ] Rapport Power BI (carte des gares, courbe horaire, classement des lignes)
-- [ ] Accumuler plusieurs journées complètes pour valider les comparaisons horaires
-- [ ] Migration SQLite → PostgreSQL/Supabase
+- [x] Rapport Power BI (courbe horaire, classements des lignes et des gares)
+- [ ] **Sortir la collecte du poste personnel** (exécution planifiée hébergée et PostgreSQL/Supabase) — elle a été à l'arrêt 62 % du temps
+- [ ] Accumuler au moins une semaine complète avant toute comparaison horaire
+- [ ] Carte des gares (visuel désactivé par défaut dans Power BI, voir `docs/powerbi.md`)

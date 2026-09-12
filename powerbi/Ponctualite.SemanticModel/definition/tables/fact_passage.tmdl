@@ -21,9 +21,12 @@ table fact_passage
 		formatString: #,0
 		lineageTag: de8da4fd-6fed-4709-8a54-ada387dd96ec
 
-	measure 'Taux ponctualite (min 20 passages)' = IF([Passages mesurables] >= 20, [Taux de ponctualite])
-		formatString: 0.00%;-0.00%;0.00%
-		lineageTag: 225edb8a-292f-4d13-8abc-b9c189d5d69a
+	/// Taux de ponctualite sur les passages effectivement observes : deja realises (is_past)
+	/// et survenus pendant une heure surveillee par le collecteur (is_collected), avec au moins
+	/// 20 passages. Les passages vus apres coup sont un echantillon biaise vers les trains longs.
+	measure 'Taux ponctualite observe' = VAR Observed = CALCULATE([Passages mesurables], fact_passage[is_collected] = 1, fact_passage[is_past] = 1) RETURN IF(Observed >= 20, CALCULATE([Taux de ponctualite], fact_passage[is_collected] = 1, fact_passage[is_past] = 1))
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 4b7d2e19-6c83-4f0a-9e25-b1a8d37c5f42
 
 	column service_date
 		dataType: dateTime
@@ -137,14 +140,20 @@ table fact_passage
 		summarizeBy: none
 		sourceColumn: is_past
 
+	column is_collected
+		dataType: int64
+		lineageTag: d2a64f07-5e19-4b3c-8a70-3f9e1c6b8d25
+		summarizeBy: none
+		sourceColumn: is_collected
+
 	partition fact_passage = m
 		mode: import
 		source =
 				let
-					Source = Csv.Document(File.Contents(DataFolder & "\fact_passage.csv"), [Delimiter = ",", Columns = 15, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+					Source = Csv.Document(File.Contents(DataFolder & "\fact_passage.csv"), [Delimiter = ",", Columns = 16, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
 					Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
 					// "en-US" so the ISO service_date parses under the fr-FR model culture.
-					Typed = Table.TransformColumnTypes(Headers, {{"service_date", type date}, {"trip_id", type text}, {"route_id", type text}, {"stop_id", type text}, {"stop_sequence", Int64.Type}, {"scheduled_arrival", type text}, {"scheduled_minutes", Int64.Type}, {"scheduled_hour", Int64.Type}, {"arrival_delay_s", Int64.Type}, {"departure_delay_s", Int64.Type}, {"schedule_relationship", type text}, {"is_punctual", Int64.Type}, {"arrival_time", Int64.Type}, {"is_past", Int64.Type}, {"observed_at", Int64.Type}}, "en-US")
+					Typed = Table.TransformColumnTypes(Headers, {{"service_date", type date}, {"trip_id", type text}, {"route_id", type text}, {"stop_id", type text}, {"stop_sequence", Int64.Type}, {"scheduled_arrival", type text}, {"scheduled_minutes", Int64.Type}, {"scheduled_hour", Int64.Type}, {"arrival_delay_s", Int64.Type}, {"departure_delay_s", Int64.Type}, {"schedule_relationship", type text}, {"is_punctual", Int64.Type}, {"arrival_time", Int64.Type}, {"is_past", Int64.Type}, {"observed_at", Int64.Type}, {"is_collected", Int64.Type}}, "en-US")
 				in
 					Typed
 

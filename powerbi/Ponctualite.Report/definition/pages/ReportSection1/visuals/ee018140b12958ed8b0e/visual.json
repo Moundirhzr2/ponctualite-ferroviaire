@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "ee018140b12958ed8b0e",
   "position": {
-    "x": 10,
-    "y": 20,
+    "x": 16,
+    "y": 16,
     "z": 0,
-    "height": 280,
-    "width": 280,
+    "height": 320,
+    "width": 1248,
     "tabOrder": 0
   },
   "visual": {
@@ -42,11 +42,11 @@
                       "Entity": "fact_passage"
                     }
                   },
-                  "Property": "Taux de ponctualite"
+                  "Property": "Taux ponctualite observe"
                 }
               },
-              "queryRef": "fact_passage.Taux de ponctualite",
-              "nativeQueryRef": "Taux de ponctualite"
+              "queryRef": "fact_passage.Taux ponctualite observe",
+              "nativeQueryRef": "Taux ponctualite observe"
             }
           ]
         }
@@ -61,7 +61,7 @@
                     "Entity": "fact_passage"
                   }
                 },
-                "Property": "Taux de ponctualite"
+                "Property": "Taux ponctualite observe"
               }
             },
             "direction": "Descending"
@@ -83,7 +83,7 @@
                 "Entity": "fact_passage"
               }
             },
-            "Property": "Taux de ponctualite"
+            "Property": "Taux ponctualite observe"
           }
         },
         "type": "Advanced"

@@ -6,7 +6,7 @@ model Model
 		legacyRedirects
 		returnErrorValuesAsNull
 
-annotation PBI_QueryOrder = ["fact_passage","dim_station","dim_route"]
+annotation PBI_QueryOrder = ["fact_passage","dim_station","dim_route","DataFolder"]
 
 annotation __PBI_TimeIntelligenceEnabled = 1
 
