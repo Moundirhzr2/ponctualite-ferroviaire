@@ -261,6 +261,62 @@ côté SQL :
 Les dix premières lignes et les dix premières gares sont désormais identiques
 dans les deux outils.
 
+### 2026-09-13 — Sortir la collecte du poste personnel
+
+La collecte sur poste personnel avait été à l'arrêt 62 % du temps. Elle tourne
+désormais dans Supabase (offre gratuite) : une Edge Function appelée toutes les
+5 minutes par `pg_cron`. Seule la collecte y est hébergée ; le référentiel GTFS,
+le schéma en étoile et les contrôles restent sur le poste, qui rapatrie les
+données (`src/sync_supabase.py`).
+
+**Contraintes de l'offre gratuite, vérifiées avant de construire :** 2 s de CPU
+par exécution, 256 Mo de mémoire, base de 500 Mo, mise en pause après 7 jours
+sans activité (une collecte toutes les 5 minutes l'exclut). Première exécution
+planifiée : **624 ms** au total, téléchargement et écriture compris.
+
+**Le stockage imposait une rétention.** Mesure réelle : 526 octets par ligne,
+l'identifiant de trajet SNCF (~100 caractères) étant stocké dans la table puis
+dans l'index de clé primaire. Le GTFS théorique prévoit ~98 000 passages en
+semaine : ~49 Mo/jour, soit 500 Mo atteints en une dizaine de jours — après quoi
+Supabase restreint le projet et la collecte s'arrête. Supabase garde donc
+7 jours ; l'archive est la base locale.
+
+**Chaque exécution réécrivait toute la table.** La règle d'origine (« une lecture
+plus récente remplace la ligne ») réécrit à chaque passage toutes les lignes
+encore présentes dans le flux, presque toujours à l'identique. Sans conséquence
+en SQLite, mais en Postgres chaque réécriture laisse une version morte et de
+nouvelles entrées d'index. Nouvelle règle, identique pour les deux collecteurs :
+une ligne n'est réécrite que si une valeur change — ou une seule fois quand la
+lecture confirme que le train est passé, faute de quoi `is_past` resterait faux.
+
+| Exécution | Règle | Arrêts reçus | Lignes écrites |
+|---|---|---|---|
+| 19:05 | tout réécrire | 7 532 | 7 532 (100 %) |
+| 19:10 | changements seulement | 7 430 | **344 (4,6 %)** |
+
+La règle a été testée sur huit cas (valeurs inchangées, lecture plus ancienne,
+`NULL`, confirmation du passage) en SQLite puis en Postgres, avec des résultats
+identiques. Sur données réelles : les **177** passages survenus entre les deux
+exécutions ont tous leur passage confirmé. Le collecteur local, passé à la même
+règle, écrit 394 lignes sur 7 540.
+
+**Deux défauts trouvés au déploiement :**
+
+- le lot d'observations, transmis en JSON avec `::jsonb`, était encodé deux fois
+  par le pilote : Postgres recevait une chaîne au lieu d'un tableau
+  (`cannot call jsonb_to_recordset on a non-array`). Corrigé par `::text::jsonb` ;
+- le curseur de synchronisation prévu, `updated_at`, est identique pour les
+  ~20 000 lignes d'une exécution, et une pagination par décalage sur une fenêtre
+  de temps saute des lignes dès qu'une ligne change pendant la synchronisation.
+  Remplacé, avant la première donnée, par `sync_seq`, numéro strictement
+  croissant attribué à chaque écriture.
+
+**Vérifié en production :** un appel sans jeton reçoit un 401 ; l'appel planifié
+de 18:55, arrivé moins de 4 minutes après une exécution, a été refusé par la
+limitation (ce qui prouve à la fois la planification et le jeton) ; 87,9 % des
+lignes hébergées portent un retard, contre 88,9 % pour le collecteur local, et
+les retards absents restent `NULL` au lieu de devenir des 0.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
@@ -351,8 +407,9 @@ dix pires lignes avant comme après correction du biais : le constat y résiste.
 > **Limites.** Deux jours seulement — un vendredi soir et un samedi matin —, et
 > **chaque tranche horaire repose sur une seule journée** : aucune comparaison
 > entre le matin et le soir n'est encore publiable. Les classements portent sur
-> 20 à 80 passages par ligne. Tant que la collecte dépend d'un poste personnel,
-> elle gardera des trous : c'est la prochaine étape technique.
+> 20 à 80 passages par ligne. Ces chiffres datent de la collecte sur poste
+> personnel ; la collecte hébergée, continue depuis le 13/09 au soir, doit
+> couvrir au moins une semaine complète avant toute comparaison horaire.
 
 ## Installation
 
@@ -362,12 +419,15 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Puis, dans l'ordre, pour repartir de zéro :
+Puis, pour repartir de zéro :
 
 ```bash
-python src/ingest_sncf.py       # au moins une collecte
-python src/refresh.py           # GTFS + marts + contrôles + export
+copy .env.example .env          # renseigner la clé publishable du projet Supabase
+python src/refresh.py           # synchro Supabase + GTFS + marts + contrôles + export
 ```
+
+Sans `.env`, la synchronisation est ignorée et le pipeline tourne sur les seules
+données locales ; `python src/ingest_sncf.py` permet alors une collecte ponctuelle.
 
 `refresh.py` télécharge lui-même le GTFS théorique s'il en existe une nouvelle
 publication. Les versions sont archivées dans `data/gtfs/versions/`, non
@@ -392,8 +452,9 @@ C'est le seul réglage machine-dépendant du projet.
 ```bash
 python src/probe_feeds.py       # vérifier qu'un flux contient réellement des données
 python src/reconcile_check.py   # mesurer le taux de jointure GTFS-RT ↔ GTFS
-python src/ingest_sncf.py       # ingestion SNCF vers data/punctuality.db
-python src/refresh.py           # tout reconstruire : GTFS, marts, contrôles, export
+python src/refresh.py           # tout reconstruire : synchro Supabase, GTFS, marts, contrôles, export
+python src/sync_supabase.py     # rapatrier la collecte hébergée dans data/punctuality.db
+python src/ingest_sncf.py       # collecte locale ponctuelle (secours)
 python src/download_gtfs.py     # archiver la dernière publication du GTFS théorique
 python src/load_gtfs.py         # appliquer les versions GTFS archivées (incrémental)
 python src/build_marts.py       # construire le schéma en étoile
@@ -430,19 +491,51 @@ La construction du rapport Power BI est décrite dans
 `refresh.py` récupère et applique d'elle-même toute nouvelle publication du GTFS
 théorique.
 
-### Collecte planifiée (Windows)
+### Collecte hébergée (Supabase)
 
-L'ingestion tourne toutes les 5 minutes via la tâche planifiée `SncfRTIngest`,
-exécutée par `pythonw.exe` (sans fenêtre). Sortie dans `data/ingest.log`.
+La collecte ne dépend plus du poste de travail : elle tourne dans un projet
+Supabase (offre gratuite, région Paris), dont tout le code est versionné dans
+`supabase/`.
+
+```
+pg_cron, toutes les 5 min
+  └─ pg_net ── POST + jeton ──▶ Edge Function ingest-sncf ── fetch ──▶ flux GTFS-RT SNCF
+                                       │
+                                       └─ upsert ──▶ Postgres : observation, ingest_run
+                                                          │
+            src/sync_supabase.py (poste) ◀── lecture seule, curseur sync_seq
+```
+
+- **Authentification** : un jeton généré par la base elle-même et conservé dans
+  Supabase Vault. `pg_cron` l'envoie, la fonction le compare à la copie du
+  Vault ; il n'apparaît ni dans le dépôt ni dans aucun échange. Sans jeton, la
+  fonction répond 401.
+- **Limitation** : une exécution lancée moins de 4 minutes après la précédente
+  est refusée, quel que soit l'appelant.
+- **Écritures sobres** : une ligne n'est réécrite que si une valeur change, ou
+  une seule fois quand le passage est confirmé (voir journal du 13/09).
+- **Rétention de 7 jours** dans Supabase : une semaine représente environ
+  300 Mo pour 500 Mo disponibles. L'archive complète est `data/punctuality.db`,
+  alimentée par `src/sync_supabase.py` — **lancer `refresh.py` au moins une fois
+  par semaine**.
+- **Lecture** : l'API n'autorise que la lecture (RLS). Renseigner `.env` d'après
+  `.env.example` avec la clé publishable du projet.
+
+Pour reproduire sur un autre projet : appliquer `supabase/migrations/` dans
+l'ordre, créer le secret `project_url` (en-tête de la migration de
+planification), déployer `supabase/functions/ingest-sncf`, puis remplir `.env`.
+
+### Collecte locale (secours)
+
+La tâche planifiée Windows `SncfRTIngest` exécute `src/ingest_sncf.py` toutes
+les 5 minutes, avec la même règle d'écriture que la fonction hébergée : les deux
+sources fusionnent sans conflit. Elle n'est plus nécessaire et peut être
+désactivée ; sortie dans `data/ingest.log`.
 
 ```powershell
 Get-ScheduledTaskInfo -TaskName "SncfRTIngest"
-Unregister-ScheduledTask -TaskName "SncfRTIngest" -Confirm:$false
+Disable-ScheduledTask -TaskName "SncfRTIngest"
 ```
-
-Le flux pesant 1,5 Mo par appel, la cadence de 5 minutes représente environ
-18 Mo/heure de téléchargement. Une cadence plus fine n'apporterait qu'une
-précision marginale sur le dernier relevé avant passage.
 
 ## Suite
 
@@ -455,6 +548,7 @@ précision marginale sur le dernier relevé avant passage.
 - [x] Contrôles qualité automatisés (structure, choix de méthode, jointure par jour)
 - [x] Indicateurs de dispersion (médiane, p90, p99) en complément de la moyenne
 - [x] Rapport Power BI (courbe horaire, classements des lignes et des gares)
-- [ ] **Sortir la collecte du poste personnel** (exécution planifiée hébergée et PostgreSQL/Supabase) — elle a été à l'arrêt 62 % du temps
+- [x] Sortir la collecte du poste personnel (Supabase : Edge Function, `pg_cron`, Postgres)
+- [ ] Identifiants entiers dans la base hébergée : ~526 octets par ligne aujourd'hui, la rétention de 7 jours pourrait passer à plusieurs semaines
 - [ ] Accumuler au moins une semaine complète avant toute comparaison horaire
 - [ ] Carte des gares (visuel désactivé par défaut dans Power BI, voir `docs/powerbi.md`)

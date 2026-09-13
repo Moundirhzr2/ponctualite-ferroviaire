@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
 
 STEPS = [
+    ("sync_supabase.py", "Synchronisation de la collecte hebergee (Supabase)"),
     ("download_gtfs.py", "Verification du GTFS theorique"),
     ("load_gtfs.py", "Chargement du GTFS theorique"),
     ("build_marts.py", "Reconstruction du schema en etoile"),

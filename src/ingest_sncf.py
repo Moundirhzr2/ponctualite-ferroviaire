@@ -76,7 +76,23 @@ ON CONFLICT (service_date, trip_id, stop_id, stop_sequence) DO UPDATE SET
     departure_time        = excluded.departure_time,
     observed_at           = excluded.observed_at
 WHERE excluded.observed_at > observation.observed_at
+  AND (
+        excluded.arrival_delay         IS NOT observation.arrival_delay
+     OR excluded.departure_delay       IS NOT observation.departure_delay
+     OR excluded.arrival_time          IS NOT observation.arrival_time
+     OR excluded.departure_time        IS NOT observation.departure_time
+     OR excluded.schedule_relationship IS NOT observation.schedule_relationship
+     OR excluded.route_id              IS NOT observation.route_id
+     -- is_past compares arrival_time with observed_at: keep the first reading
+     -- taken after the train has passed, even when nothing else changed.
+     OR (observation.observed_at < observation.arrival_time
+         AND excluded.observed_at >= excluded.arrival_time)
+  )
 """
+# Same rule as supabase/functions/ingest-sncf, so the local and hosted stores
+# merge cleanly: a fresher reading only lands when it changes something. The
+# hosted database needs it to avoid rewriting every row on every run; here it
+# keeps observed_at meaning the same thing in both places.
 
 
 def setup_logging():
