@@ -16,6 +16,9 @@ ligne, par gare et par tranche horaire — avec un focus Grand Est
 | [Horaires théoriques SNCF](https://transport.data.gouv.fr/datasets/horaires-sncf) | GTFS | Versions quotidiennes archivées et appliquées successivement (fenêtre glissante, voir journal du 12/09) |
 | [SNCF GTFS-RT Trip Updates](https://proxy.transport.data.gouv.fr/resource/sncf-gtfs-rt-trip-updates) | GTFS-RT | ~2 240 trajets et ~20 300 prévisions d'arrêt par appel |
 
+Les données sont diffusées sous Licence Ouverte (Etalab) par le Point d'Accès
+National ; elles ne relèvent pas de la licence MIT, qui couvre le code.
+
 ## Qualité des données — ce qui a été mesuré
 
 Taux de jointure entre le flux temps réel et le référentiel théorique
