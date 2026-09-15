@@ -50,8 +50,9 @@ visuel au repos, mais faux dès le premier filtre.
 
 **Le rapport est écrit en JSON, pas à la souris.** Le format PBIR range chaque
 visuel dans son propre fichier ; la mise en page, les titres et les couleurs sont
-donc générés, relisibles en revue de code et reproductibles après un changement
-de mesure. Le thème (`StaticResources/RegisteredResources/PonctualiteTheme.json`)
+donc générés par `powerbi/build_report.py`, relisibles en revue de code et
+reproductibles après un changement de mesure — relancer le script avec Power BI
+fermé réécrit les trois pages à l'identique. Le thème (`StaticResources/RegisteredResources/PonctualiteTheme.json`)
 porte la palette, les polices et les cadres, ce qui évite de répéter la mise en
 forme sur chaque visuel.
 
