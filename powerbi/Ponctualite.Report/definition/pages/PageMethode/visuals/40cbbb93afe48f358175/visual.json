@@ -1,0 +1,215 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "40cbbb93afe48f358175",
+  "position": {
+    "x": 20,
+    "y": 464,
+    "z": 27,
+    "height": 214,
+    "width": 1240,
+    "tabOrder": 27
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Les trois corrections",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "fontWeight": "600",
+                      "color": "#1B3A5C",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "1. Le seuil tombe sur un palier du flux. ",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "fontWeight": "600",
+                      "color": "#1F2933",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Les retards ne sont annoncés que par multiples de 5 minutes, jamais négatifs, et l'heure d'arrivée prévue n'ajoute aucune précision : elle vaut l'horaire théorique plus le retard annoncé dans 99,97 % des cas. Un passage annoncé à 5 minutes peut donc être en retard de 5 à 10 minutes. Le taux est publié entre deux bornes, jamais seul.",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#52606D",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ],
+                "spaceBefore": 8
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "2. Les heures non collectées se faisaient passer pour des mesures. ",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "fontWeight": "600",
+                      "color": "#1F2933",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Le flux garde un train tant qu'il roule : après une coupure du collecteur, seuls les trains longs restent visibles. Une dégradation de l'après-midi s'est révélée n'être que cet artefact. Chaque passage porte donc un indicateur de couverture, et le taux n'utilise que les heures surveillées à plus de 50 %.",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#52606D",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ],
+                "spaceBefore": 6
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "3. Un train supprimé n'est pas un train ponctuel. ",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "fontWeight": "600",
+                      "color": "#1F2933",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Les trajets supprimés restent dans la table de faits mais ne sont jamais comptés ponctuels ; les trajets ajoutés hors horaire, qui n'ont pas d'heure théorique, en sont exclus. Quinze contrôles automatisés vérifient ces règles à chaque exécution, dont le taux de jointure jour par jour.",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#52606D",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ],
+                "spaceBefore": 6
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E4E7EB'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

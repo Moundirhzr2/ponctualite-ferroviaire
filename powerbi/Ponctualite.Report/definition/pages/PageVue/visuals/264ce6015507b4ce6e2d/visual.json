@@ -1,0 +1,215 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "264ce6015507b4ce6e2d",
+  "position": {
+    "x": 820,
+    "y": 472,
+    "z": 11,
+    "height": 232,
+    "width": 440,
+    "tabOrder": 11
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Comment lire ces chiffres",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "fontWeight": "600",
+                      "color": "#1B3A5C",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Passages observés. ",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "fontWeight": "600",
+                      "color": "#1F2933",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Un passage ne compte que s'il a eu lieu et que le collecteur tournait à cette heure-là. Les passages vus après coup sont biaisés vers les trains longs.",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#52606D",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ],
+                "spaceBefore": 6
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Deux bornes. ",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "fontWeight": "600",
+                      "color": "#1F2933",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Le flux n'annonce les retards que par paliers de 5 minutes, soit exactement le seuil retenu : 8,8 % des passages sont annoncés à 5 minutes pile et décident du taux à eux seuls. Le taux est donc encadré, jamais publié seul.",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#52606D",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ],
+                "spaceBefore": 6
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Seuils. ",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "fontWeight": "600",
+                      "color": "#1F2933",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Ponctualité mesurée par passage en gare, pas par trajet. Trains supprimés conservés mais jamais comptés ponctuels. Classements limités aux lignes et gares d'au moins 20 passages.",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#52606D",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ],
+                "spaceBefore": 6
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E4E7EB'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

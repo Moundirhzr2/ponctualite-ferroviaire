@@ -9,6 +9,31 @@ réel (GTFS-RT) aux horaires théoriques (GTFS), et restituer les résultats par
 ligne, par gare et par tranche horaire — avec un focus Grand Est
 (Mulhouse – Strasbourg – Bâle).
 
+## Le rapport
+
+Trois pages, construites sur les seuls passages observés. Les segments
+« Jour de service » et « Mode » sont synchronisés d'une page à l'autre, et tous
+les visuels se croisent : cliquer sur une ligne filtre le reste de la page.
+
+![Vue d'ensemble du rapport Power BI](docs/images/powerbi-1-vue-ensemble.png)
+
+La première page met le taux entre ses deux bornes et donne, juste à côté, la
+raison de cet encadrement : le flux n'annonce les retards que par paliers de
+5 minutes. La courbe horaire est doublée d'une lecture jour par jour, parce
+qu'une courbe cumulée avait déjà menti une fois (journal du 12/09).
+
+![Lignes et gares les moins ponctuelles](docs/images/powerbi-2-lignes-gares.png)
+
+Les classements se recalculent à chaque filtre : le top 10 est une mesure de
+rang en DAX, pas un filtre figé. Le nuage de points rappelle ce que les
+classements ne disent pas — un taux extrême sur 20 passages ne pèse pas autant
+qu'un taux médiocre sur 500.
+
+![Méthode et qualité](docs/images/powerbi-3-methode.png)
+
+La troisième page expose les corrections appliquées avant publication, et ce que
+chacune a changé. C'est elle qui sépare une mesure d'une impression.
+
 ## Sources
 
 | Source | Format | Contenu |
@@ -348,7 +373,7 @@ l'endroit le plus défavorable :
 
 | Convention | Taux |
 |---|---|
-| Retard annoncé nul | **83,6 %** |
+| Retard annoncé sous 5 minutes (paliers 0 à 4) | **83,6 %** |
 | Retard annoncé de 0 ou 5 minutes | **92,4 %** |
 
 Ces 8,8 points ne mesurent aucun train : ils dépendent du sort d'un seul palier,
@@ -421,7 +446,7 @@ ensemble.
 | Indicateur | Valeur |
 |---|---|
 | Ponctualité, retard annoncé de 0 ou 5 min | **92,4 %** |
-| Ponctualité, retard annoncé nul | **83,6 %** |
+| Ponctualité, retard annoncé sous 5 min | **83,6 %** |
 | Retard médian | 0 min |
 | Retard moyen | 2,1 min |
 | 9e décile (p90) | 5 min |
@@ -489,7 +514,7 @@ défaillant y apparaît autant de fois qu'il dessert d'arrêts.
 **À Mulhouse**, la gare centrale est à 92,5 % sur 480 passages, desservie par
 13 lignes. Les deux lignes de tram-train (`Mulhouse Gare Centrale - Lutterbach`
 et `Mulhouse Gare Centrale - Thann Saint-Jacques`) affichent 99,5 % sur 5 533
-passages — mais 96,6 % si l'on exige un retard annoncé nul. Sur un service
+passages — mais 96,6 % si l'on exige un retard annoncé sous 5 minutes. Sur un service
 urbain, où cinq minutes représentent un intervalle entier, le palier du flux
 pèse bien plus lourd que sur une liaison de trois heures : les deux chiffres ne
 se comparent pas.

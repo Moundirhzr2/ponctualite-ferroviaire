@@ -27,21 +27,52 @@ données. Les bandeaux « Certaines tables ont des données incomplètes » et
 **Actualiser** dans le ruban : les trois tables se chargent et les bandeaux
 disparaissent.
 
-**Le rapport contient déjà trois visuels :**
+**Le rapport contient trois pages :**
 
-| Visuel | Contenu |
+| Page | Ce qu'elle montre |
 |---|---|
-| Histogramme, pleine largeur | `Taux ponctualite observe` par `scheduled_hour` |
-| Barres horizontales | `Taux ponctualite observe` par ligne, tri croissant (les pires en tête) |
-| Barres horizontales | `Taux ponctualite observe` par gare, tri croissant |
+| Vue d'ensemble | Les deux bornes du taux, la courbe horaire, la distribution des retards annoncés, la vérification jour par jour |
+| Lignes et gares | Les dix pires lignes et gares, un nuage volume × taux, le détail trié |
+| Méthode et qualité | L'écart entre conventions, les trois populations, la couverture horaire, les corrections appliquées |
 
-Les trois visuels utilisent la même mesure. Leurs classements sont identiques,
-position par position, à ceux de `src/report.py`.
+Les segments *Jour de service* et *Mode* sont synchronisés entre les pages
+(`syncGroup` dans le JSON), et le filtrage croisé reste actif partout : cliquer
+une barre filtre les autres visuels de la page.
+
+Tous les taux passent par la même mesure de population, et les classements sont
+identiques, position par position, à ceux de `src/report.py`.
+
+**Le classement est une mesure, pas un filtre.** `Taux ligne (10 pires)` calcule
+un rang avec `RANKX` sur les lignes sélectionnées et renvoie `BLANK()` au-delà du
+dixième rang : le visuel n'affiche donc que dix barres, et le classement se
+recalcule quand un segment change. Un filtre *Top N* figé aurait donné le même
+visuel au repos, mais faux dès le premier filtre.
+
+**Le rapport est écrit en JSON, pas à la souris.** Le format PBIR range chaque
+visuel dans son propre fichier ; la mise en page, les titres et les couleurs sont
+donc générés, relisibles en revue de code et reproductibles après un changement
+de mesure. Le thème (`StaticResources/RegisteredResources/PonctualiteTheme.json`)
+porte la palette, les polices et les cadres, ce qui évite de répéter la mise en
+forme sur chaque visuel.
 
 **Format :** le rapport a été converti au format PBIR à l'enregistrement. Les
 visuels sont désormais un fichier JSON chacun sous
 `Ponctualite.Report/definition/pages/`, ce qui les rend lisibles en revue de
 code — un `.pbix` ne l'aurait pas permis. La conversion est irréversible.
+
+### Deux bornes plutôt qu'un taux
+
+Le flux SNCF n'annonce les retards que par paliers de 5 minutes, soit exactement
+le seuil de ponctualité (journal du 15/09). Le rapport publie donc deux mesures
+côte à côte, jamais l'une sans l'autre :
+
+| Mesure | Définition | Valeur au 15/09 |
+|---|---|---|
+| `Taux ponctualite observe` | retard annoncé de 0 ou 5 minutes | 92,4 % |
+| `Taux ponctualite strict` | retard annoncé sous 5 minutes | 83,6 % |
+
+`Ecart de convention (pts)` affiche la différence, 8,8 points, qui ne mesure
+aucun train : seulement le sort du palier de 5 minutes.
 
 ### Une seule mesure porte toutes les règles de population
 
@@ -99,6 +130,8 @@ devinables.
 | `La propriété « description » est inconnue` | les commentaires `///` de TMDL deviennent des descriptions, que les relations n'acceptent pas |
 | `Une erreur s'est produite lors du rendu du rapport` | `report.json` (format hérité) sans `resourcePackages` déclarant le thème de base — échoue même sans aucun visuel |
 | `dim_station : 8 720 lignes chargées, 8 720 erreurs` | culture `fr-FR` : la virgule y est le séparateur décimal, donc `47.75` est rejeté. Corrigé par le paramètre `"en-US"` de `Table.TransformColumnTypes` |
+| `La propriété requise « reportVersionAtImport » n'a pas été incluse` | un thème personnalisé déclaré dans `themeCollection.customTheme` exige le même bloc de version que le thème de base |
+| Un segment n'affiche que son titre, sans aucune valeur | `general.orientation` vaut **1** pour les vignettes en ligne et 2 pour la liste verticale ; il faut en plus `data.mode = "Basic"`. En liste verticale sans en-tête, le segment restait vide |
 
 Le dernier est le plus insidieux : il n'empêche pas l'ouverture, il vide
 seulement la dimension gare, et la carte reste désespérément vide sans message

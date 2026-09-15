@@ -28,6 +28,87 @@ table fact_passage
 		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 4b7d2e19-6c83-4f0a-9e25-b1a8d37c5f42
 
+	/// Population de reference de tout le rapport : passages deja realises (is_past)
+	/// et survenus pendant une heure surveillee par le collecteur (is_collected).
+	measure 'Passages observes' = CALCULATE([Passages mesurables], fact_passage[is_collected] = 1, fact_passage[is_past] = 1)
+		formatString: #,0
+		lineageTag: dfe3b9c3-5e55-4009-9783-7dfa36c8edd1
+
+	/// Meme compte, mais vide sous 20 passages, pour que les lignes trop peu
+	/// observees disparaissent des tableaux au lieu d'y figurer sans taux.
+	measure 'Passages observes (min 20)' = IF([Passages observes] >= 20, [Passages observes])
+		formatString: #,0
+		lineageTag: ab1f00d6-1311-4162-98b7-426a01129ad3
+
+	/// Borne basse du taux. Le flux SNCF n'annonce les retards que par paliers de
+	/// 5 minutes : un passage annonce a 5 minutes peut etre en retard de 5 a 10.
+	/// Cette mesure ne compte ponctuels que les retards annonces sous 5 minutes, la ou
+	/// 'Taux ponctualite observe' compte aussi le palier de 5 minutes.
+	measure 'Taux ponctualite strict' = VAR Observes = [Passages observes] VAR Nuls = CALCULATE([Passages mesurables], fact_passage[is_collected] = 1, fact_passage[is_past] = 1, fact_passage[arrival_delay_s] < 300) RETURN IF(Observes >= 20, DIVIDE(Nuls, Observes))
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 78f74122-7563-4152-8bca-7b5ff2c36c21
+
+	/// Ce que la convention seule ajoute au taux, en points de pourcentage.
+	measure 'Ecart de convention (pts)' = IF(NOT ISBLANK([Taux ponctualite observe]), ([Taux ponctualite observe] - [Taux ponctualite strict]) * 100)
+		formatString: 0.0
+		lineageTag: b90ba9eb-7369-41fb-81f9-36c59a9398da
+
+	measure 'Retard moyen observe (min)' = IF([Passages observes] >= 20, CALCULATE([Retard moyen (min)], fact_passage[is_collected] = 1, fact_passage[is_past] = 1, NOT ISBLANK(fact_passage[is_punctual])))
+		formatString: 0.0
+		lineageTag: b30c6735-a877-42ec-9600-aea119f190c2
+
+	measure 'Retard median observe (min)' = IF([Passages observes] >= 20, CALCULATE(DIVIDE(MEDIAN(fact_passage[arrival_delay_s]), 60), fact_passage[is_collected] = 1, fact_passage[is_past] = 1, NOT ISBLANK(fact_passage[is_punctual])))
+		formatString: 0.0
+		lineageTag: 2c75e507-6ecf-4396-9a9e-1337476e63cd
+
+	measure 'Retard p90 observe (min)' = IF([Passages observes] >= 20, CALCULATE(DIVIDE(PERCENTILE.INC(fact_passage[arrival_delay_s], 0.9), 60), fact_passage[is_collected] = 1, fact_passage[is_past] = 1, NOT ISBLANK(fact_passage[is_punctual])))
+		formatString: 0.0
+		lineageTag: bee4a7de-b289-4fdd-808f-c91439ded023
+
+	measure 'Retard p99 observe (min)' = IF([Passages observes] >= 20, CALCULATE(DIVIDE(PERCENTILE.INC(fact_passage[arrival_delay_s], 0.99), 60), fact_passage[is_collected] = 1, fact_passage[is_past] = 1, NOT ISBLANK(fact_passage[is_punctual])))
+		formatString: 0.0
+		lineageTag: dbb3d908-9478-497f-a2f9-f77404db3588
+
+	/// Sert l'histogramme des paliers : en excluant le retard nul, qui ecrase tout,
+	/// on voit que le flux ne publie presque que des multiples de 5 minutes.
+	measure 'Passages observes en retard' = CALCULATE([Passages mesurables], fact_passage[is_collected] = 1, fact_passage[is_past] = 1, fact_passage[arrival_delay_s] > 0)
+		formatString: #,0
+		lineageTag: 66bf7be5-9e14-4de0-871c-bba1cfe0bb48
+
+	measure 'Jours de service' = CALCULATE(DISTINCTCOUNT(fact_passage[service_date]), fact_passage[is_collected] = 1, fact_passage[is_past] = 1)
+		formatString: #,0
+		lineageTag: 40455b1f-567f-464d-93b8-234803a1879a
+
+	/// Sous-titre dynamique : suit les segments selectionnes.
+	measure Perimetre = FORMAT([Passages observes], "#,0") & " passages observés   ·   " & [Jours de service] & " jours de service   ·   du " & FORMAT(CALCULATE(MIN(fact_passage[service_date]), fact_passage[is_collected] = 1, fact_passage[is_past] = 1), "dd/MM") & " au " & FORMAT(CALCULATE(MAX(fact_passage[service_date]), fact_passage[is_collected] = 1, fact_passage[is_past] = 1), "dd/MM")
+		lineageTag: e90b3e08-6fc1-4fd3-93c6-c0bc146eb428
+
+	/// Passages vus apres coup : echantillon biaise vers les trains longs, publie
+	/// a part pour montrer l'ecart plutot que le diluer dans le taux.
+	measure 'Taux vus apres coup' = VAR n = CALCULATE([Passages mesurables], fact_passage[is_past] = 1, fact_passage[is_collected] = 0) RETURN IF(n >= 20, CALCULATE([Taux de ponctualite], fact_passage[is_past] = 1, fact_passage[is_collected] = 0))
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 4c14e6f9-8b8d-4e1b-93ec-5beb36a96ac1
+
+	/// Passages encore a venir : une prevision, pas un resultat.
+	measure 'Taux passages a venir' = VAR n = CALCULATE([Passages mesurables], fact_passage[is_past] = 0) RETURN IF(n >= 20, CALCULATE([Taux de ponctualite], fact_passage[is_past] = 0))
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: a28f5df0-6b6e-4a96-8fe2-e16079286f6a
+
+	/// Part des passages mesurables qui entrent dans le taux publie.
+	measure 'Part observee' = DIVIDE([Passages observes], [Passages mesurables])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 15f0878d-6d37-499a-b025-c88205dd9344
+
+	/// Classement calcule plutot que filtre : le top 10 se recalcule avec les
+	/// segments, et les lignes sous 20 passages restent exclues par la mesure de base.
+	measure 'Taux ligne (10 pires)' = VAR Taux = [Taux ponctualite observe] VAR Lignes = FILTER(ALLSELECTED(dim_route[route_long_name]), NOT ISBLANK([Taux ponctualite observe])) VAR Rang = RANKX(Lignes, [Taux ponctualite observe], , ASC, Dense) RETURN IF(NOT ISBLANK(Taux) && Rang <= 10, Taux)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 1fb2b218-42b4-4340-a8dd-63f6f116032f
+
+	measure 'Taux gare (10 pires)' = VAR Taux = [Taux ponctualite observe] VAR Gares = FILTER(ALLSELECTED(dim_station[stop_name]), NOT ISBLANK([Taux ponctualite observe])) VAR Rang = RANKX(Gares, [Taux ponctualite observe], , ASC, Dense) RETURN IF(NOT ISBLANK(Taux) && Rang <= 10, Taux)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 8c81e2c5-af5f-4e6b-8264-a18061dc52ca
+
 	column service_date
 		dataType: dateTime
 		formatString: yyyy-mm-dd
@@ -145,6 +226,43 @@ table fact_passage
 		lineageTag: d2a64f07-5e19-4b3c-8a70-3f9e1c6b8d25
 		summarizeBy: none
 		sourceColumn: is_collected
+
+	/// Libelle d'axe, trie sur l'heure theorique et non sur l'alphabet.
+	column Heure = FORMAT(fact_passage[scheduled_hour], "00") & "h"
+		dataType: string
+		lineageTag: b6e4edc2-f15e-4aa6-adac-695ee3dc2d5c
+		summarizeBy: none
+		sortByColumn: scheduled_hour
+
+	column Jour = FORMAT(fact_passage[service_date], "ddd dd/MM")
+		dataType: string
+		lineageTag: 06148a0e-668b-434f-a45d-25d75d822e08
+		summarizeBy: none
+		sortByColumn: service_date
+
+	column palier_ordre = VAR m = INT(fact_passage[arrival_delay_s] / 60) RETURN IF(NOT ISBLANK(fact_passage[arrival_delay_s]), IF(m > 16, 16, m))
+		dataType: int64
+		lineageTag: 156b32f7-0528-4876-b68d-8331bc108a67
+		summarizeBy: none
+
+	/// Retard annonce a la minute, plafonne a 16 min : l'axe de l'histogramme
+	/// qui montre les paliers de 5 minutes du flux.
+	column 'Retard annonce' = VAR o = fact_passage[palier_ordre] RETURN IF(NOT ISBLANK(o), IF(o = 16, "16 min et +", FORMAT(o, "0") & " min"))
+		dataType: string
+		lineageTag: c8571bea-4f7d-46b1-9050-4938e55e20c4
+		summarizeBy: none
+		sortByColumn: palier_ordre
+
+	column tranche_ordre = VAR h = fact_passage[scheduled_hour] RETURN SWITCH(TRUE(), h >= 5 && h <= 8, 1, h >= 9 && h <= 12, 2, h >= 13 && h <= 16, 3, h >= 17 && h <= 20, 4, 5)
+		dataType: int64
+		lineageTag: 2ab8f2b8-311a-4770-babc-c45cf171bbf0
+		summarizeBy: none
+
+	column Tranche = SWITCH(fact_passage[tranche_ordre], 1, "05-08h", 2, "09-12h", 3, "13-16h", 4, "17-20h", "21h-04h")
+		dataType: string
+		lineageTag: c7bb32c1-360e-4272-b336-389a5645d7c1
+		summarizeBy: none
+		sortByColumn: tranche_ordre
 
 	partition fact_passage = m
 		mode: import
