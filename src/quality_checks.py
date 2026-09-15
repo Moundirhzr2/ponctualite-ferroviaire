@@ -100,6 +100,37 @@ CHECKS = [
         lambda n: n == 0,
         "ADDED trips have no theoretical time by construction",
     ),
+    # The three checks below pin down the feed's resolution rather than the
+    # build. Every published rate is a share of calls under a 5-minute
+    # threshold, and the feed reports delays in 5-minute steps, so the
+    # threshold sits exactly on a step: 8.8% of observed calls are announced at
+    # exactly 5 minutes and decide the headline figure on their own. The
+    # README publishes both bounds because of it. If the feed ever changes
+    # resolution these checks fail, which is the signal to rewrite that framing
+    # rather than to keep quoting a number that no longer means the same thing.
+    (
+        "delays are whole minutes",
+        "SELECT COUNT(*) FROM fact_passage WHERE arrival_delay_s % 60 <> 0",
+        lambda n: n == 0,
+        "sub-minute values would mean the feed changed resolution",
+    ),
+    (
+        "no negative delay",
+        "SELECT COUNT(*) FROM fact_passage WHERE arrival_delay_s < 0",
+        lambda n: n == 0,
+        "the feed never reports an early train, so a null delay means 'not late', "
+        "not 'exactly on time'; negative values would change that reading",
+    ),
+    (
+        "5-minute steps, % of exceptions",
+        """SELECT CAST(ROUND(100.0 * SUM(CASE WHEN arrival_delay_s % 300 <> 0 THEN 1 ELSE 0 END)
+                            / COUNT(*)) AS INT)
+           FROM fact_passage
+           WHERE arrival_delay_s IS NOT NULL AND arrival_delay_s <> 0""",
+        lambda n: n <= 5,
+        "delays stopped coming in 5-minute steps: a sharper rate is now possible "
+        "and the two bounds published in the README are obsolete",
+    ),
 ]
 
 

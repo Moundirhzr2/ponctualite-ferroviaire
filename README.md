@@ -29,6 +29,10 @@ Taux de jointure entre le flux temps réel et le référentiel théorique
 | `trip_id` (hors trajets non planifiés) | **99,85 %** (2 015 / 2 018) |
 | `stop_id` | **100 %** (20 279 / 20 279) |
 
+Ce taux est recalculé **par jour de service** à chaque exécution du contrôle
+qualité (`src/quality_checks.py`), jamais en cumulé, avec un seuil d'échec à
+95 % : du 11 au 15/09, 99,85 %, 99,91 %, 99,87 %, 99,71 % et 97,95 %.
+
 Répartition des trajets du flux temps réel :
 
 | `schedule_relationship` | Présent dans le GTFS | Nombre |
@@ -317,6 +321,54 @@ limitation (ce qui prouve à la fois la planification et le jeton) ; 87,9 % des
 lignes hébergées portent un retard, contre 88,9 % pour le collecteur local, et
 les retards absents restent `NULL` au lieu de devenir des 0.
 
+### 2026-09-15 — Le flux ne mesure pas à la minute : le seuil de 5 minutes tombe sur un palier
+
+Cinq jours de collecte hébergée donnent 92,4 % de passages à moins de 5 minutes
+de retard. Avant de publier ce chiffre, un contrôle de la distribution des
+retards a montré qu'il ne dit pas ce qu'il paraît dire.
+
+Ce que contient le flux, sur 224 408 passages observés dont le retard est
+renseigné :
+
+| Constat | Mesure |
+|---|---|
+| Retards négatifs (train en avance) | **0** |
+| Retards non entiers en minutes | 0 |
+| Valeurs de retard distinctes | 73 |
+| Retards non nuls multiples de 5 minutes | **98,6 %** (36 763 sur 37 287) |
+| Passages annoncés à exactement 5 minutes | **19 620**, soit 8,8 % des passages observés |
+
+Le flux publie donc des paliers de 5 minutes, et jamais d'avance. Le champ
+`arrival_time`, qui donne l'heure d'arrivée prévue, n'apporte aucune précision :
+il vaut l'horaire théorique plus le retard annoncé dans 99,97 % des cas. La
+minute réelle est irrécupérable.
+
+Le seuil de ponctualité de 5 minutes tombe alors exactement sur un palier, à
+l'endroit le plus défavorable :
+
+| Convention | Taux |
+|---|---|
+| Retard annoncé nul | **83,6 %** |
+| Retard annoncé de 0 ou 5 minutes | **92,4 %** |
+
+Ces 8,8 points ne mesurent aucun train : ils dépendent du sort d'un seul palier,
+celui des 19 620 passages annoncés à 5 minutes, dont le flux ne dit pas s'ils
+sont à 5 minutes exactement, entre 5 et 10, ou autour de 5. Les 354 passages
+annoncés entre 1 et 4 minutes prouvent que le producteur sait publier une valeur
+fine ; il ne le fait presque jamais.
+
+Ce qui est retenu : ne plus publier un taux seul. Le chiffre mis en avant reste
+celui des deux premiers paliers, 92,4 %, parce que l'ensemble de passages qu'il
+désigne est sans ambiguïté — retard annoncé de 0 ou 5 minutes —, mais il est
+toujours accompagné du taux strict, 83,6 %, qui le borne par le bas. La
+ponctualité réelle à moins de 5 minutes est entre les deux, et ce flux ne permet
+pas de resserrer l'encadrement.
+
+Trois contrôles gardent l'hypothèse : aucun retard négatif, aucun retard non
+entier, au plus 5 % de retards hors paliers de 5 minutes. Si SNCF se met à
+publier à la minute, ils échouent — et c'est le signal qu'il faut réécrire cette
+page, plutôt que continuer à citer un chiffre qui aura changé de sens.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
@@ -356,60 +408,99 @@ l'horaire théorique auquel il est comparé.
 
 ## Résultats
 
-Mesure du 12/09/2026 sur deux jours de service, vendredi 11 et samedi 12 :
-**21 793 passages observés**, c'est-à-dire effectués pendant une heure où le
-collecteur tournait.
+Mesure du 15/09/2026 sur cinq jours de service, du vendredi 11 au mardi 15 :
+**221 722 passages observés**, c'est-à-dire effectués pendant une heure où le
+collecteur tournait, sur 276 218 passages au total. Les trois derniers jours
+sont couverts en continu par la collecte hébergée ; le 15 est encore en cours.
+
+**Le flux publie les retards par paliers de 5 minutes**, et le seuil de
+ponctualité tombe exactement sur un palier : le taux dépend donc autant d'une
+convention que des trains (journal du 15/09). Les deux bornes sont publiées
+ensemble.
 
 | Indicateur | Valeur |
 |---|---|
-| Ponctualité (< 5 min) | **92,6 %** |
+| Ponctualité, retard annoncé de 0 ou 5 min | **92,4 %** |
+| Ponctualité, retard annoncé nul | **83,6 %** |
 | Retard médian | 0 min |
-| Retard moyen | 1,9 min |
+| Retard moyen | 2,1 min |
 | 9e décile (p90) | 5 min |
-| p99 | **30 min** |
-| Retard maximal | 220 min |
-| Focus Grand Est | 92,8 % sur 3 684 passages |
-| Gare de Mulhouse | 95,5 % sur 44 passages |
+| p99 | **35 min** |
+| Retard maximal | 560 min |
+| Focus Grand Est | 95,5 % sur 40 579 passages, retard moyen 1,2 min |
+| Gare de Mulhouse | 92,5 % sur 480 passages |
+
+Sauf mention contraire, les taux ci-dessous utilisent la borne haute, celle qui
+était publiée jusqu'ici.
 
 Populations écartées du taux, pour comparaison :
 
 | Population | Ponctualité | Passages |
 |---|---|---|
-| Tous passages mesurables confondus | 91,9 % | 42 587 |
-| Vus après coup (heure non surveillée) | **88,5 %** | 5 305 |
-| Encore à venir (prévision) | 92,0 % | 15 489 |
+| Tous passages mesurables confondus | 92,2 % | 243 348 |
+| Vus après coup (heure non surveillée) | **88,1 %** | 5 103 |
+| Encore à venir (prévision) | 91,2 % | 16 523 |
 
-La moyenne seule induit en erreur : à 1,9 minute elle suggère un réseau
-régulier, alors que la médiane est nulle — la majorité des trains sont à
-l'heure — et que le dernier centile atteint 30 minutes. Ce sont deux
+La moyenne seule induit en erreur : à 2,1 minutes elle suggère un réseau
+régulier, alors que la médiane est nulle — la majorité des trains n'ont aucun
+retard annoncé — et que le dernier centile atteint 35 minutes. Ce sont deux
 descriptions exactes des mêmes données, et seule la seconde décrit ce que vit un
 voyageur en retard. Les trois indicateurs sont donc publiés ensemble.
 
-**Par tranche horaire**, sur les seules heures surveillées :
+**La ponctualité se dégrade au fil de la journée**, de 95,2 % le matin à 88,4 %
+en soirée :
 
-| Heure | 05h | 06h | 07h | 18h | 19h | 20h | 21h |
-|---|---|---|---|---|---|---|---|
-| Taux | 95,8 % | 94,4 % | 95,2 % | 90,4 % | 92,8 % | 92,5 % | 92,3 % |
-| Passages | 335 | 1 757 | 3 368 | 6 167 | 5 545 | 2 487 | 1 764 |
+| Tranche | 05-08h | 09-12h | 13-16h | 17-20h | 21-23h |
+|---|---|---|---|---|---|
+| Ponctualité | 95,2 % | 92,9 % | 93,2 % | 90,6 % | 88,4 % |
+| Passages observés | 49 562 | 38 449 | 41 618 | 76 689 | 13 810 |
 
-Les tranches de 08h à 17h et de 22h à 23h n'ont été surveillées aucun des deux
-jours : elles ne sont pas publiées.
+Cette courbe avait déjà été observée le 11/09, et s'était révélée fausse : elle
+venait des heures non collectées, pas des trains (journal du 12/09). Elle est
+donc reprise **jour par jour**, sur les trois jours couverts en continu, sans
+jamais mélanger les jours :
+
+| Jour | 05-08h | 09-12h | 13-16h | 17-20h | Passages observés |
+|---|---|---|---|---|---|
+| dimanche 13/09 | 97,5 % | 95,2 % | 95,5 % | 91,6 % | 43 901 |
+| lundi 14/09 | 95,2 % | 92,8 % | 93,2 % | 91,4 % | 78 893 |
+| mardi 15/09 | 94,8 % | 91,4 % | 91,7 % | 88,6 % | 75 288 |
+
+Chacun des trois jours perd 4 à 6 points entre le matin et la soirée : la pente
+n'est pas un effet de cumul. Les retards s'accumulent au fil de la journée,
+chaque train retardé en retardant d'autres. Le dimanche est le plus ponctuel des
+trois, ce qui va dans le sens attendu — moins de circulations — mais un seul
+dimanche ne prouve rien.
 
 **Lignes les moins ponctuelles** (passages observés, au moins 20) :
-`Ambérieu – Mâcon` (32,6 % sur 43), `41. Bordeaux – Arcachon` (40,9 % sur 22),
-`Douai – Cambrai` (43,3 % sur 30), `Clermont-Ferrand – Montluçon` (52,5 % sur
-59). En Grand Est, `Strasbourg – Wissembourg` (57,7 % sur 52) figure parmi les
-dix pires lignes avant comme après correction du biais : le constat y résiste.
+`Paris - Latour-de-Carol` (48,8 % sur 84), `Paris - Stuttgart Munich` (50,0 %
+sur 112), `Paris - Francfort Route Sud` (52,8 % sur 72), `Bordeaux - Marseille`
+(59,6 % sur 394), `Toulouse Matabiau - Clermont Ferrand` (61,0 % sur 566). Les
+liaisons longues et transfrontalières dominent : plus un trajet est long, plus
+il a d'occasions d'accumuler du retard, et plus il traverse de réseaux.
 
-**Gares les moins ponctuelles** : `Bischwiller` (60,7 % sur 28, Bas-Rhin),
-`Aéroport Charles de Gaulle 2 TGV` (71,4 % sur 21), `Pessac` (77,8 % sur 27).
+**Gares les moins ponctuelles** : `Francfort sur le Main` (36,4 % sur 22) et
+`Karlsruhe Hbf` (46,4 % sur 56), desservies par les liaisons transfrontalières,
+puis cinq arrêts de `Ste-Marie-aux-Mines` (47,8 % à 51,6 %, retard moyen 7 min).
+Ces cinq arrêts appartiennent au même service, l'autocar `Selestat - St Die Des
+Vosges` : un classement de gares compte une ligne par arrêt, donc un service
+défaillant y apparaît autant de fois qu'il dessert d'arrêts.
 
-> **Limites.** Deux jours seulement — un vendredi soir et un samedi matin —, et
-> **chaque tranche horaire repose sur une seule journée** : aucune comparaison
-> entre le matin et le soir n'est encore publiable. Les classements portent sur
-> 20 à 80 passages par ligne. Ces chiffres datent de la collecte sur poste
-> personnel ; la collecte hébergée, continue depuis le 13/09 au soir, doit
-> couvrir au moins une semaine complète avant toute comparaison horaire.
+**À Mulhouse**, la gare centrale est à 92,5 % sur 480 passages, desservie par
+13 lignes. Les deux lignes de tram-train (`Mulhouse Gare Centrale - Lutterbach`
+et `Mulhouse Gare Centrale - Thann Saint-Jacques`) affichent 99,5 % sur 5 533
+passages — mais 96,6 % si l'on exige un retard annoncé nul. Sur un service
+urbain, où cinq minutes représentent un intervalle entier, le palier du flux
+pèse bien plus lourd que sur une liaison de trois heures : les deux chiffres ne
+se comparent pas.
+
+> **Limites.** Cinq jours, dont trois complets, et le dernier en cours. La
+> courbe horaire repose sur 3 à 5 jours selon la tranche et mélange semaine et
+> week-end : les séparer demande une semaine complète. Les classements de gares
+> portent sur 20 à 60 passages, ceux des lignes sur 20 à 570 : ils désignent des
+> pistes à instruire, pas des palmarès. Les gares allemandes apparaissent par
+> les liaisons transfrontalières et ne disent rien du réseau allemand. Enfin,
+> aucun taux publié ici n'est plus fin que le palier de 5 minutes du flux.
 
 ## Installation
 
@@ -550,5 +641,5 @@ Disable-ScheduledTask -TaskName "SncfRTIngest"
 - [x] Rapport Power BI (courbe horaire, classements des lignes et des gares)
 - [x] Sortir la collecte du poste personnel (Supabase : Edge Function, `pg_cron`, Postgres)
 - [ ] Identifiants entiers dans la base hébergée : ~526 octets par ligne aujourd'hui, la rétention de 7 jours pourrait passer à plusieurs semaines
-- [ ] Accumuler au moins une semaine complète avant toute comparaison horaire
+- [ ] Accumuler une semaine complète pour séparer semaine et week-end dans la courbe horaire
 - [ ] Carte des gares (visuel désactivé par défaut dans Power BI, voir `docs/powerbi.md`)
