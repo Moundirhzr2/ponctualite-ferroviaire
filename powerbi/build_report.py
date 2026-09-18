@@ -110,7 +110,7 @@ def visuel(cle, type_visuel, x, y, w, h, roles=None, titre=None, sous_titre=None
     if conteneur_extra:
         conteneur.update(conteneur_extra)
 
-    v = {"visualType": type_visuel, "drillFilterOtherVisuals": True}
+    v = {"visualType": type_visuel}
     if roles:
         query = {"queryState": {role: {"projections": projs} for role, projs in roles.items()}}
         if tri:
@@ -164,8 +164,9 @@ def paragraphe(runs, taille_defaut="10pt", espace_avant=None):
         ] if v is not None}}
         for r in runs
     ]}
-    if espace_avant:
-        p["spaceBefore"] = espace_avant
+    # Power BI ignore l'espacement inter-paragraphe d'une zone de texte : il le
+    # retire du fichier a la sauvegarde. L'argument est conserve pour la lisibilite
+    # de l'appel, mais n'est plus ecrit.
     return p
 
 
@@ -362,7 +363,7 @@ def page_lignes():
     ))
 
     objets_nuage = {
-        "categoryAxis": [{"properties": {"showAxisTitle": litt(True), "axisScale": litt("Log"), "labelColor": couleur(GRIS), "fontSize": litt(9)}}],
+        "categoryAxis": [{"properties": {"showAxisTitle": litt(True), "labelColor": couleur(GRIS), "fontSize": litt(9)}}],
         "valueAxis": [{"properties": {"showAxisTitle": litt(False), "gridlineColor": couleur("#EDF0F3"), "labelColor": couleur(GRIS), "fontSize": litt(9)}}],
         "fillPoint": [{"properties": {"show": litt(True)}}],
         "dataPoint": [{"properties": {"fill": couleur(BLEU)}}],
@@ -375,7 +376,7 @@ def page_lignes():
             "Y": [mes("Taux ponctualite observe")],
         },
         titre="Un taux extrême sur peu de passages ne prouve rien",
-        sous_titre="Chaque point est une ligne : nombre de passages observés (échelle log) et taux",
+        sous_titre="Chaque point est une ligne : nombre de passages observés et taux mesuré",
         objets=objets_nuage,
     ))
 
@@ -392,9 +393,7 @@ def page_lignes():
             "grid": [{"properties": {"gridVertical": litt(False), "outlineColor": couleur("#E4E7EB")}}],
             "columnHeaders": [{"properties": {"fontColor": couleur(GRIS), "fontSize": litt(9), "bold": litt(True)}}],
             "values": [{"properties": {"fontSize": litt(9), "fontColor": couleur(ENCRE)}}],
-            "total": [{"properties": {"show": litt(False), "totals": litt(False)}}],
-            "totals": [{"properties": {"show": litt(False)}}],
-            "subTotals": [{"properties": {"rowSubtotals": litt(False), "columnSubtotals": litt(False)}}],
+            "total": [{"properties": {"totals": litt(False)}}],
         },
         tri=[{"field": champ_mesure("fact_passage", "Taux ponctualite observe"), "direction": "Ascending"}],
     ))

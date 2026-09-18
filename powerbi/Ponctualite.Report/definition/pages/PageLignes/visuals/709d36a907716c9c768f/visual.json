@@ -47,7 +47,6 @@
               },
               "queryRef": "fact_passage.Passages observes",
               "nativeQueryRef": "Passages observes",
-              "active": true,
               "displayName": "Passages observés"
             }
           ]
@@ -148,7 +147,15 @@
       ],
       "fillPoint": [
         {
-          "properties": {}
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
         }
       ],
       "dataPoint": [
@@ -242,7 +249,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Chaque point est une ligne : nombre de passages observés (échelle log) et taux'"
+                  "Value": "'Chaque point est une ligne : nombre de passages observés et taux mesuré'"
                 }
               }
             },
@@ -383,7 +390,6 @@
           }
         }
       ]
-    },
-    "drillFilterOtherVisuals": true
+    }
   }
 }
