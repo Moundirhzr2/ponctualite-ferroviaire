@@ -394,6 +394,45 @@ entier, au plus 5 % de retards hors paliers de 5 minutes. Si SNCF se met à
 publier à la minute, ils échouent — et c'est le signal qu'il faut réécrire cette
 page, plutôt que continuer à citer un chiffre qui aura changé de sens.
 
+### 2026-09-18 — Le référentiel avait des trous, et la porte qualité les a vus
+
+Le contrôle qualité a refusé de publier : taux de jointure de **94,83 % le
+17/09**, sous le seuil de 95 %, donc pipeline arrêté et export non regénéré.
+
+La cause n'était pas dans les données temps réel mais dans le référentiel. Le
+GTFS théorique n'est archivé que lorsque `refresh.py` tourne ; entre le 15 et le
+18 septembre il n'a pas tourné, et les publications du 16 et du 17 n'ont jamais
+été téléchargées. Comme chaque export SNCF est une fenêtre glissante qui démarre
+à sa date de publication, les trajets propres à ces deux jours n'existaient plus
+nulle part dans l'archive locale : impossible de leur trouver un horaire
+théorique.
+
+L'archive contenait 7 publications pour 9 jours, dont deux jours avec deux
+éditions et trois jours sans aucune.
+
+**Correction.** Le Point d'Accès National conserve les 25 dernières publications
+de chaque ressource. `download_gtfs.py` interroge donc désormais l'historique du
+jeu de données et télécharge toute publication postérieure à la plus ancienne
+déjà archivée qui manque à l'appel — l'archive comble ses propres trous. Cinq
+publications ont été récupérées d'un coup.
+
+| Jour | Avant | Après |
+|---|---|---|
+| 15/09 | 97,95 % | 99,79 % |
+| 17/09 | **94,83 %** | **97,01 %** |
+
+**Ce que ça change dans l'exploitation.** La règle « lancer `refresh.py` au moins
+une fois par semaine » suffisait pour la collecte hébergée, qui garde 7 jours ;
+elle ne suffisait pas pour le référentiel, qui n'était archivé qu'au moment de
+l'exécution. Elle suffit maintenant, avec une marge de 25 publications, soit
+environ 25 jours. Au-delà, un trou devient définitif.
+
+Deux enseignements qui valent au-delà de ce projet : une donnée de référence
+qu'on ne peut pas re-télécharger doit être archivée dès qu'elle paraît, et un
+contrôle qui bloque la publication vaut mieux qu'un tableau de bord qui affiche
+un chiffre faux sans le dire. Ici, le rapport a continué d'afficher les données
+de la veille au lieu d'un résultat douteux.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :

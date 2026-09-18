@@ -11,7 +11,6 @@
   },
   "visual": {
     "visualType": "slicer",
-    "drillFilterOtherVisuals": true,
     "query": {
       "queryState": {
         "Values": {
@@ -28,7 +27,8 @@
                 }
               },
               "queryRef": "dim_route.mode",
-              "nativeQueryRef": "mode"
+              "nativeQueryRef": "mode",
+              "active": true
             }
           ]
         }
@@ -87,13 +87,6 @@
                   }
                 }
               }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "9D"
-                }
-              }
             }
           }
         }
@@ -118,11 +111,6 @@
           }
         }
       ]
-    },
-    "syncGroup": {
-      "groupName": "mode",
-      "fieldChanges": false,
-      "filterChanges": true
     },
     "visualContainerObjects": {
       "title": [
@@ -293,6 +281,30 @@
           }
         }
       ]
-    }
+    },
+    "syncGroup": {
+      "groupName": "mode",
+      "fieldChanges": false,
+      "filterChanges": true
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "8e7072ff1baac82b2cd3",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_route"
+              }
+            },
+            "Property": "mode"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
   }
 }

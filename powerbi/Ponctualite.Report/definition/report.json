@@ -38,7 +38,7 @@
       "items": [
         {
           "name": "PonctualiteTheme",
-          "path": "PonctualiteTheme.json",
+          "path": "PonctualiteTheme",
           "type": "CustomTheme"
         }
       ]
