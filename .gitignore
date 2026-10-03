@@ -4,6 +4,7 @@ __pycache__/
 .env
 data/raw/
 data/ingest.log
+data/archive.log
 data/gtfs/
 data/punctuality.db
 data/punctuality.db-wal
