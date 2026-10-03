@@ -1,19 +1,19 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "819c833eb52ace3ded6b",
+  "name": "bdb0e88cfdc0bf6efabf",
   "position": {
-    "x": 600,
-    "y": 14,
-    "z": 2,
-    "height": 88,
-    "width": 200,
-    "tabOrder": 2
+    "x": 20,
+    "y": 472,
+    "z": 11,
+    "height": 232,
+    "width": 780,
+    "tabOrder": 11
   },
   "visual": {
-    "visualType": "slicer",
+    "visualType": "lineChart",
     "query": {
       "queryState": {
-        "Values": {
+        "Category": {
           "projections": [
             {
               "field": {
@@ -23,65 +23,112 @@
                       "Entity": "fact_passage"
                     }
                   },
-                  "Property": "Jour"
+                  "Property": "Tranche"
                 }
               },
-              "queryRef": "fact_passage.Jour",
-              "nativeQueryRef": "Jour"
+              "queryRef": "fact_passage.Tranche",
+              "nativeQueryRef": "Tranche",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Type de jour"
+                }
+              },
+              "queryRef": "fact_passage.Type de jour",
+              "nativeQueryRef": "Type de jour"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux ponctualite observe"
+                }
+              },
+              "queryRef": "fact_passage.Taux ponctualite observe",
+              "nativeQueryRef": "Taux ponctualite observe"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_passage"
+                  }
+                },
+                "Property": "Tranche"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
       }
     },
     "objects": {
-      "general": [
+      "valueAxis": [
         {
           "properties": {
-            "orientation": {
+            "start": {
               "expr": {
                 "Literal": {
-                  "Value": "1D"
+                  "Value": "0.7D"
                 }
               }
-            }
-          }
-        }
-      ],
-      "data": [
-        {
-          "properties": {
-            "mode": {
+            },
+            "end": {
               "expr": {
                 "Literal": {
-                  "Value": "'Dropdown'"
+                  "Value": "1.0D"
                 }
               }
-            }
-          }
-        }
-      ],
-      "header": [
-        {
-          "properties": {
-            "show": {
+            },
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
-            }
-          }
-        }
-      ],
-      "items": [
-        {
-          "properties": {
-            "fontColor": {
+            },
+            "gridlineColor": {
               "solid": {
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1F2933'"
+                      "Value": "'#EDF0F3'"
+                    }
+                  }
+                }
+              }
+            },
+            "labelColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
                     }
                   }
                 }
@@ -97,31 +144,109 @@
           }
         }
       ],
-      "selection": [
+      "categoryAxis": [
         {
           "properties": {
-            "singleSelect": {
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
             },
-            "strictSingleSelect": {
+            "gridlineShow": {
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            },
+            "labelColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "position": {
+              "expr": {
+                "Literal": {
+                  "Value": "'TopCenter'"
+                }
+              }
+            },
+            "showTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "labelColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "lineStyles": [
+        {
+          "properties": {
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
                 }
               }
             }
           }
         }
       ]
-    },
-    "syncGroup": {
-      "groupName": "jour",
-      "fieldChanges": false,
-      "filterChanges": true
     },
     "visualContainerObjects": {
       "title": [
@@ -137,7 +262,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Jour de service'"
+                  "Value": "'Le week-end est plus ponctuel à toute heure, et les deux déclinent de la même façon'"
                 }
               }
             },
@@ -177,6 +302,51 @@
               "expr": {
                 "Literal": {
                   "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Écart vérifié sur 15 journées complètes — test de permutation exact, p = 0,008'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'left'"
                 }
               }
             }

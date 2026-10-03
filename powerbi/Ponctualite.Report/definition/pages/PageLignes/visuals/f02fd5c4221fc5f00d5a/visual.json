@@ -1,16 +1,16 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "819c833eb52ace3ded6b",
+  "name": "f02fd5c4221fc5f00d5a",
   "position": {
-    "x": 600,
-    "y": 14,
-    "z": 2,
-    "height": 88,
-    "width": 200,
-    "tabOrder": 2
+    "x": 650,
+    "y": 444,
+    "z": 20,
+    "height": 260,
+    "width": 610,
+    "tabOrder": 20
   },
   "visual": {
-    "visualType": "slicer",
+    "visualType": "tableEx",
     "query": {
       "queryState": {
         "Values": {
@@ -20,60 +20,108 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
+                      "Entity": "dim_route"
+                    }
+                  },
+                  "Property": "route_long_name"
+                }
+              },
+              "queryRef": "dim_route.route_long_name",
+              "nativeQueryRef": "route_long_name",
+              "displayName": "Ligne"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
                       "Entity": "fact_passage"
                     }
                   },
-                  "Property": "Jour"
+                  "Property": "Passages observes (min 20)"
                 }
               },
-              "queryRef": "fact_passage.Jour",
-              "nativeQueryRef": "Jour"
+              "queryRef": "fact_passage.Passages observes (min 20)",
+              "nativeQueryRef": "Passages observes (min 20)",
+              "displayName": "Passages"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux ponctualite observe"
+                }
+              },
+              "queryRef": "fact_passage.Taux ponctualite observe",
+              "nativeQueryRef": "Taux ponctualite observe",
+              "displayName": "Taux (0 ou 5 min)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux ponctualite strict"
+                }
+              },
+              "queryRef": "fact_passage.Taux ponctualite strict",
+              "nativeQueryRef": "Taux ponctualite strict",
+              "displayName": "Taux strict"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_passage"
+                  }
+                },
+                "Property": "Taux ponctualite observe"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
       }
     },
     "objects": {
-      "general": [
+      "grid": [
         {
           "properties": {
-            "orientation": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "data": [
-        {
-          "properties": {
-            "mode": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Dropdown'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "header": [
-        {
-          "properties": {
-            "show": {
+            "gridVertical": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
+            },
+            "outlineColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E4E7EB'"
+                    }
+                  }
+                }
+              }
             }
           }
         }
       ],
-      "items": [
+      "columnHeaders": [
         {
           "properties": {
             "fontColor": {
@@ -81,7 +129,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1F2933'"
+                      "Value": "'#52606D'"
                     }
                   }
                 }
@@ -93,21 +141,45 @@
                   "Value": "9D"
                 }
               }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
             }
           }
         }
       ],
-      "selection": [
+      "values": [
         {
           "properties": {
-            "singleSelect": {
+            "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "9D"
                 }
               }
             },
-            "strictSingleSelect": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1F2933'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
               "expr": {
                 "Literal": {
                   "Value": "false"
@@ -117,11 +189,6 @@
           }
         }
       ]
-    },
-    "syncGroup": {
-      "groupName": "jour",
-      "fieldChanges": false,
-      "filterChanges": true
     },
     "visualContainerObjects": {
       "title": [
@@ -137,7 +204,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Jour de service'"
+                  "Value": "'Le détail, trié du pire au meilleur'"
                 }
               }
             },

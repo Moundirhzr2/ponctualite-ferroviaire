@@ -183,14 +183,14 @@ def carte(cle, mesure, titre, x, y, w, h, teinte=BLEU):
     )
 
 
-def segment(cle, entite, propriete, titre, x, y, w, h, groupe, horizontal=True):
+def segment(cle, entite, propriete, titre, x, y, w, h, groupe, horizontal=True, liste_deroulante=False):
     # orientation 1 is the tile layout, 2 the vertical list. Checked against
     # what Power BI itself writes: as a vertical list with no header, the slicer
     # rendered its title and nothing else. data.mode separates a list from a
     # dropdown, and is required for the values to appear at all.
     objets = {
         "general": [{"properties": {"orientation": litt(1 if horizontal else 2)}}],
-        "data": [{"properties": {"mode": litt("Basic")}}],
+        "data": [{"properties": {"mode": litt("Dropdown" if liste_deroulante else "Basic")}}],
         "header": [{"properties": {"show": litt(False)}}],
         "items": [{"properties": {"fontColor": couleur(ENCRE), "fontSize": litt(9)}}],
         "selection": [{"properties": {"singleSelect": litt(False), "strictSingleSelect": litt(False)}}],
@@ -248,8 +248,9 @@ def page_vue():
             "padding": [{"properties": {"top": litt(0), "bottom": litt(0), "left": litt(0), "right": litt(0)}}],
         },
     ))
-    v.append(segment("seg-jour", "fact_passage", "Jour", "Jour de service", 600, 14, 380, 88, "jour"))
-    v.append(segment("seg-mode", "dim_route", "mode", "Mode", 1000, 14, 260, 88, "mode"))
+    v.append(segment("seg-jour", "fact_passage", "Jour", "Jour de service", 600, 14, 200, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type", "fact_passage", "Type de jour", "Type de jour", 820, 14, 220, 88, "type"))
+    v.append(segment("seg-mode", "dim_route", "mode", "Mode", 1060, 14, 200, 88, "mode"))
 
     cartes = [
         ("Taux ponctualite observe", "Ponctualité (0 ou 5 min annoncés)", BLEU),
@@ -302,11 +303,11 @@ def page_vue():
         "par-jour", "lineChart", 20, 472, 780, 232,
         roles={
             "Category": [col("fact_passage", "Tranche", actif=True)],
-            "Series": [col("fact_passage", "Jour")],
+            "Series": [col("fact_passage", "Type de jour")],
             "Y": [mes("Taux ponctualite observe")],
         },
-        titre="Chaque journée perd 4 à 6 points entre le matin et le soir",
-        sous_titre="Une ligne par jour de service : la pente n'est pas un effet de cumul",
+        titre="Le week-end est plus ponctuel à toute heure, et les deux déclinent de la même façon",
+        sous_titre="Écart vérifié sur 15 journées complètes — test de permutation exact, p = 0,008",
         objets=objets_jour,
         tri=[{"field": champ_colonne("fact_passage", "Tranche"), "direction": "Ascending"}],
     ))
@@ -330,8 +331,9 @@ def page_lignes():
         paragraphe([("Où la ponctualité décroche", {"taille": "18pt", "gras": "600", "couleur": BLEU})]),
         paragraphe([("Lignes et gares d'au moins 20 passages observés  ·  tout est croisé : cliquez sur une barre", {"taille": "9pt", "couleur": GRIS})]),
     ]))
-    v.append(segment("seg-jour2", "fact_passage", "Jour", "Jour de service", 600, 14, 380, 88, "jour"))
-    v.append(segment("seg-mode2", "dim_route", "mode", "Mode", 1000, 14, 260, 88, "mode"))
+    v.append(segment("seg-jour2", "fact_passage", "Jour", "Jour de service", 600, 14, 200, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type2", "fact_passage", "Type de jour", "Type de jour", 820, 14, 220, 88, "type"))
+    v.append(segment("seg-mode2", "dim_route", "mode", "Mode", 1060, 14, 200, 88, "mode"))
 
     objets_barres = {
         "categoryAxis": [{"properties": {"showAxisTitle": litt(False), "labelColor": couleur(ENCRE), "fontSize": litt(9)}}],
@@ -407,7 +409,8 @@ def page_methode():
         paragraphe([("Ce que le chiffre ne dit pas tout seul", {"taille": "18pt", "gras": "600", "couleur": BLEU})]),
         paragraphe([("Trois corrections appliquées aux données avant toute publication", {"taille": "9pt", "couleur": GRIS})]),
     ]))
-    v.append(segment("seg-jour3", "fact_passage", "Jour", "Jour de service", 880, 14, 380, 88, "jour"))
+    v.append(segment("seg-jour3", "fact_passage", "Jour", "Jour de service", 820, 14, 200, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type3", "fact_passage", "Type de jour", "Type de jour", 1040, 14, 220, 88, "type"))
 
     v.append(carte("ecart", "Ecart de convention (pts)", "Écart entre les deux conventions (pts)", 20, 112, 290, 96, AMBRE))
     v.append(carte("part-obs", "Part observee", "Passages retenus dans le taux", 330, 112, 290, 96, BLEU))

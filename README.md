@@ -468,6 +468,44 @@ Un trou silencieux est pire qu'un trou bruyant : tous les taux calculés sur la
 période continuent de fonctionner, sur un échantillon que personne ne songe à
 mettre en doute.
 
+### 2026-10-03 — Le week-end est plus ponctuel, et ce n'est pas le hasard
+
+Quinze journées sont désormais couvertes 24 h sur 24 : dix de semaine, cinq de
+week-end. Assez pour trancher la question laissée ouverte depuis le 12/09, où
+chaque tranche horaire ne reposait que sur un jour.
+
+| | Jours | Moyenne | Étendue |
+|---|---|---|---|
+| Semaine | 10 | 91,98 % | 90,2 – 93,2 |
+| Week-end | 5 | **93,21 %** | 92,2 – 94,0 |
+
+L'écart est de **1,23 point**. Les deux étendues se chevauchent — le samedi
+26/09 (92,2 %) fait moins bien que le vendredi 18/09 (93,2 %) — donc la moyenne
+seule ne prouve rien. Il fallait un test.
+
+**Test de permutation exact.** Si le jour de la semaine n'avait aucun effet,
+répartir ces quinze taux au hasard en groupes de dix et cinq donnerait aussi
+souvent un écart de cette taille. Il y a exactement 3 003 façons de choisir
+cinq jours parmi quinze : elles ont toutes été énumérées, sans échantillonnage
+ni approximation. **25 d'entre elles atteignent l'écart observé, soit p = 0,008.**
+
+Sur la borne stricte — retard annoncé nul — l'écart monte à **3,76 points**
+(82,70 % contre 86,46 %) et **p = 0,0003** : une seule permutation sur 3 003.
+
+**Deux choses à en retenir.**
+
+La première est mécanique : le week-end fait circuler 57 % des trains d'un jour
+de semaine. Moins de circulations, donc plus de marge entre elles, et un retard
+qui se propage moins loin. L'écart se retrouve dans les cinq tranches horaires,
+y compris la nuit, ce qui n'était pas le cas sur un seul week-end.
+
+La seconde porte sur la mesure elle-même : **la convention de seuil comprime
+l'écart**. Le taux publié ne montre que 1,2 point de différence là où la borne
+stricte en montre 3,8. Le palier de 5 minutes du flux absorbe une partie du
+phénomène — les trains de semaine sont plus nombreux dans ce palier, et le seuil
+« au plus 5 minutes » les compte ponctuels. Un indicateur trop généreux ne se
+contente pas de flatter un chiffre : il efface des différences réelles.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
@@ -507,10 +545,10 @@ l'horaire théorique auquel il est comparé.
 
 ## Résultats
 
-Mesure du 15/09/2026 sur cinq jours de service, du vendredi 11 au mardi 15 :
-**221 722 passages observés**, c'est-à-dire effectués pendant une heure où le
-collecteur tournait, sur 276 218 passages au total. Les trois derniers jours
-sont couverts en continu par la collecte hébergée ; le 15 est encore en cours.
+Mesure du 03/10/2026 sur 18 jours de service, du 11/09 au 03/10 :
+**1 076 281 passages observés**, c'est-à-dire effectués pendant une heure où le
+collecteur tournait. Cinq journées manquent, du 21 au 25 septembre, perdues
+faute d'archivage automatique — le journal du 03/10 raconte comment.
 
 **Le flux publie les retards par paliers de 5 minutes**, et le seuil de
 ponctualité tombe exactement sur un palier : le taux dépend donc autant d'une
@@ -519,123 +557,82 @@ ensemble.
 
 | Indicateur | Valeur |
 |---|---|
-| Ponctualité, retard annoncé de 0 ou 5 min | **92,4 %** |
-| Ponctualité, retard annoncé sous 5 min | **83,6 %** |
+| Ponctualité, retard annoncé de 0 ou 5 min | **92,3 %** |
+| Ponctualité, retard annoncé sous 5 min | **83,7 %** |
 | Retard médian | 0 min |
-| Retard moyen | 2,1 min |
+| Retard moyen | 2,2 min |
 | 9e décile (p90) | 5 min |
-| p99 | **35 min** |
-| Retard maximal | 560 min |
-| Focus Grand Est | 95,5 % sur 40 579 passages, retard moyen 1,2 min |
-| Gare de Mulhouse | 92,5 % sur 480 passages |
-
-Sauf mention contraire, les taux ci-dessous utilisent la borne haute, celle qui
-était publiée jusqu'ici.
+| p99 | **40 min** |
+| Retard maximal | 1 430 min |
+| Focus Grand Est | 94,1 % sur 204 433 passages, retard moyen 1,5 min |
 
 Populations écartées du taux, pour comparaison :
 
 | Population | Ponctualité | Passages |
 |---|---|---|
-| Tous passages mesurables confondus | 92,2 % | 243 348 |
-| Vus après coup (heure non surveillée) | **88,1 %** | 5 103 |
-| Encore à venir (prévision) | 91,2 % | 16 523 |
+| Tous passages mesurables confondus | 92,2 % | 1 106 149 |
+| Vus après coup (heure non surveillée) | **87,9 %** | 5 030 |
+| Encore à venir (prévision) | 89,6 % | 24 838 |
 
-La moyenne seule induit en erreur : à 2,1 minutes elle suggère un réseau
+La moyenne seule induit en erreur : à 2,2 minutes elle suggère un réseau
 régulier, alors que la médiane est nulle — la majorité des trains n'ont aucun
-retard annoncé — et que le dernier centile atteint 35 minutes. Ce sont deux
+retard annoncé — et que le dernier centile atteint 40 minutes. Ce sont deux
 descriptions exactes des mêmes données, et seule la seconde décrit ce que vit un
 voyageur en retard. Les trois indicateurs sont donc publiés ensemble.
 
-**La ponctualité se dégrade au fil de la journée**, de 95,2 % le matin à 88,4 %
-en soirée :
+### Semaine et week-end
 
-| Tranche | 05-08h | 09-12h | 13-16h | 17-20h | 21-23h |
-|---|---|---|---|---|---|
-| Ponctualité | 95,2 % | 92,9 % | 93,2 % | 90,6 % | 88,4 % |
-| Passages observés | 49 562 | 38 449 | 41 618 | 76 689 | 13 810 |
+Sur les quinze journées couvertes 24 h sur 24 — dix de semaine, cinq de
+week-end — le week-end est plus ponctuel de **1,23 point** : 93,21 % contre
+91,98 % en moyenne par jour. Un test de permutation exact, qui énumère les
+3 003 répartitions possibles de ces quinze jours, donne **p = 0,008** ; sur la
+borne stricte, l'écart atteint 3,76 points et **p = 0,0003** (journal du 03/10).
 
-Cette courbe avait déjà été observée le 11/09, et s'était révélée fausse : elle
-venait des heures non collectées, pas des trains (journal du 12/09). Elle est
-donc reprise **jour par jour**, sur les trois jours couverts en continu, sans
-jamais mélanger les jours :
+| Tranche | Semaine | Week-end | Écart |
+|---|---|---|---|
+| 05-08h | 93,7 % | 95,4 % | **+1,7** |
+| 09-12h | 91,4 % | 93,9 % | **+2,5** |
+| 13-16h | 92,8 % | 93,8 % | +1,0 |
+| 17-20h | 91,3 % | 92,4 % | +1,1 |
+| 21h-04h | 87,2 % | 88,5 % | +1,3 |
 
-| Jour | 05-08h | 09-12h | 13-16h | 17-20h | Passages observés |
-|---|---|---|---|---|---|
-| dimanche 13/09 | 97,5 % | 95,2 % | 95,5 % | 91,6 % | 43 901 |
-| lundi 14/09 | 95,2 % | 92,8 % | 93,2 % | 91,4 % | 78 893 |
-| mardi 15/09 | 94,8 % | 91,4 % | 91,7 % | 88,6 % | 75 288 |
-
-Chacun des trois jours perd 4 à 6 points entre le matin et la soirée : la pente
-n'est pas un effet de cumul. Les retards s'accumulent au fil de la journée,
-chaque train retardé en retardant d'autres. Le dimanche est le plus ponctuel des
-trois, ce qui va dans le sens attendu — moins de circulations — mais un seul
-dimanche ne prouve rien.
+Deux lectures dans un seul tableau. **Horizontalement**, le week-end gagne dans
+les cinq tranches, sans exception. **Verticalement**, la ponctualité se dégrade
+au fil de la journée des deux côtés : de 93,7 % à 87,2 % en semaine, de 95,4 % à
+88,5 % le week-end. Les retards s'accumulent du matin au soir, et le week-end
+part simplement de plus haut — il fait circuler 57 % des trains d'un jour de
+semaine.
 
 **Lignes les moins ponctuelles** (passages observés, au moins 20) :
-`Paris - Latour-de-Carol` (48,8 % sur 84), `Paris - Stuttgart Munich` (50,0 %
-sur 112), `Paris - Francfort Route Sud` (52,8 % sur 72), `Bordeaux - Marseille`
-(59,6 % sur 394), `Toulouse Matabiau - Clermont Ferrand` (61,0 % sur 566). Les
+`Paris - Francfort Route Sud` (45,3 % sur 364), `Bordeaux - Marseille` (50,2 %
+sur 1 807), `Paris - Stuttgart Munich` (51,6 % sur 539), `Lyon - LR` (60,7 % sur
+737), `Selestat - St Die Des Vosges` (63,7 % sur 4 235, un service routier). Les
 liaisons longues et transfrontalières dominent : plus un trajet est long, plus
 il a d'occasions d'accumuler du retard, et plus il traverse de réseaux.
 
-**Gares les moins ponctuelles** : `Francfort sur le Main` (36,4 % sur 22) et
-`Karlsruhe Hbf` (46,4 % sur 56), desservies par les liaisons transfrontalières,
-puis cinq arrêts de `Ste-Marie-aux-Mines` (47,8 % à 51,6 %, retard moyen 7 min).
-Ces cinq arrêts appartiennent au même service, l'autocar `Selestat - St Die Des
-Vosges` : un classement de gares compte une ligne par arrêt, donc un service
-défaillant y apparaît autant de fois qu'il dessert d'arrêts.
+**Gares les moins ponctuelles** : `Stuttgart Hbf` (19,8 % sur 81),
+`Ulm Hbf` (37,5 %), `Francfort sur le Main` (38,7 % sur 119), `Karlsruhe Hbf`
+(40,1 % sur 274) — toutes allemandes, en bout de liaisons transfrontalières,
+après plusieurs centaines de kilomètres. Viennent ensuite les arrêts de
+`Lièpvre` et `Ste-Marie-aux-Mines`, desservis par le même autocar de
+substitution, qu'un classement de gares fait apparaître autant de fois qu'il
+compte d'arrêts.
 
-**À Mulhouse**, la gare centrale est à 92,5 % sur 480 passages, desservie par
-13 lignes. Les deux lignes de tram-train (`Mulhouse Gare Centrale - Lutterbach`
-et `Mulhouse Gare Centrale - Thann Saint-Jacques`) affichent 99,5 % sur 5 533
-passages — mais 96,6 % si l'on exige un retard annoncé sous 5 minutes. Sur un service
-urbain, où cinq minutes représentent un intervalle entier, le palier du flux
-pèse bien plus lourd que sur une liaison de trois heures : les deux chiffres ne
-se comparent pas.
+**À Mulhouse**, la gare centrale est à 91,3 % sur 2 291 passages, et à 78,4 %
+sur la borne stricte. Les arrêts urbains du tram-train dépassent 99 %, mais la
+comparaison n'a pas de sens : sur un service où les rames passent toutes les dix
+minutes, cinq minutes de retard représentent la moitié d'un intervalle, alors
+que le flux ne sait pas descendre sous ce palier. Le mode tram affiche 99,0 %
+d'ensemble, l'autocar 87,7 %, le train 92,3 %.
 
-> **Limites.** Cinq jours, dont trois complets, et le dernier en cours. La
-> courbe horaire repose sur 3 à 5 jours selon la tranche et mélange semaine et
-> week-end : les séparer demande une semaine complète. Les classements de gares
-> portent sur 20 à 60 passages, ceux des lignes sur 20 à 570 : ils désignent des
-> pistes à instruire, pas des palmarès. Les gares allemandes apparaissent par
-> les liaisons transfrontalières et ne disent rien du réseau allemand. Enfin,
-> aucun taux publié ici n'est plus fin que le palier de 5 minutes du flux.
-
-## Installation
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Puis, pour repartir de zéro :
-
-```bash
-copy .env.example .env          # renseigner la clé publishable du projet Supabase
-python src/refresh.py           # synchro Supabase + GTFS + marts + contrôles + export
-```
-
-Sans `.env`, la synchronisation est ignorée et le pipeline tourne sur les seules
-données locales ; `python src/ingest_sncf.py` permet alors une collecte ponctuelle.
-
-`refresh.py` télécharge lui-même le GTFS théorique s'il en existe une nouvelle
-publication. Les versions sont archivées dans `data/gtfs/versions/`, non
-versionné dans Git (≈ 4 Mo par jour). Pour couvrir des observations antérieures
-à la première collecte, récupérer les versions correspondantes dans la section
-« Ressources historisées » de la
-[page du jeu de données](https://transport.data.gouv.fr/datasets/horaires-sncf)
-et les déposer dans ce dossier.
-
-### Après un clone : le chemin des données Power BI
-
-Power BI n'accepte pas de chemin relatif dans `File.Contents`. Le dossier des
-CSV est donc porté par un paramètre `DataFolder`, dont la valeur par défaut
-pointe vers la machine de développement. Après un clone, l'ajuster une fois :
-*Transformer les données > Modifier les paramètres > DataFolder*, en indiquant
-le chemin absolu de `data/export`, puis *Actualiser*.
-
-C'est le seul réglage machine-dépendant du projet.
+> **Limites.** 18 jours, dont 15 couverts 24 h sur 24 et un trou de cinq jours
+> assumé. La comparaison semaine / week-end repose sur 10 et 5 journées : le test
+> exact dit que l'écart n'est pas un accident d'échantillonnage, il ne dit pas
+> qu'il vaudra la même chose en décembre. Les classements portent sur 20 à 4 000
+> passages selon les lignes ; ils désignent des pistes à instruire, pas des
+> palmarès. Les gares allemandes apparaissent par les liaisons transfrontalières
+> et ne disent rien du réseau allemand. Enfin, aucun taux publié ici n'est plus
+> fin que le palier de 5 minutes du flux.
 
 ## Archivage automatique
 
@@ -773,5 +770,5 @@ Disable-ScheduledTask -TaskName "SncfRTIngest"
 - [x] Rapport Power BI (courbe horaire, classements des lignes et des gares)
 - [x] Sortir la collecte du poste personnel (Supabase : Edge Function, `pg_cron`, Postgres)
 - [ ] Identifiants entiers dans la base hébergée : ~526 octets par ligne aujourd'hui, la rétention de 7 jours pourrait passer à plusieurs semaines
-- [ ] Accumuler une semaine complète pour séparer semaine et week-end dans la courbe horaire
+- [x] Séparer semaine et week-end dans la courbe horaire (15 journées complètes, test de permutation exact)
 - [ ] Carte des gares (visuel désactivé par défaut dans Power BI, voir `docs/powerbi.md`)

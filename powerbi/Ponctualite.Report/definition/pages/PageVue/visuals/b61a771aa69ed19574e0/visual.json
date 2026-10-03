@@ -1,19 +1,19 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "819c833eb52ace3ded6b",
+  "name": "b61a771aa69ed19574e0",
   "position": {
-    "x": 600,
-    "y": 14,
-    "z": 2,
-    "height": 88,
-    "width": 200,
-    "tabOrder": 2
+    "x": 820,
+    "y": 216,
+    "z": 10,
+    "height": 244,
+    "width": 440,
+    "tabOrder": 10
   },
   "visual": {
-    "visualType": "slicer",
+    "visualType": "columnChart",
     "query": {
       "queryState": {
-        "Values": {
+        "Category": {
           "projections": [
             {
               "field": {
@@ -23,65 +23,76 @@
                       "Entity": "fact_passage"
                     }
                   },
-                  "Property": "Jour"
+                  "Property": "Retard annonce"
                 }
               },
-              "queryRef": "fact_passage.Jour",
-              "nativeQueryRef": "Jour"
+              "queryRef": "fact_passage.Retard annonce",
+              "nativeQueryRef": "Retard annonce",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Passages observes en retard"
+                }
+              },
+              "queryRef": "fact_passage.Passages observes en retard",
+              "nativeQueryRef": "Passages observes en retard"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_passage"
+                  }
+                },
+                "Property": "Retard annonce"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
       }
     },
     "objects": {
-      "general": [
+      "categoryAxis": [
         {
           "properties": {
-            "orientation": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "data": [
-        {
-          "properties": {
-            "mode": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Dropdown'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "header": [
-        {
-          "properties": {
-            "show": {
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
-            }
-          }
-        }
-      ],
-      "items": [
-        {
-          "properties": {
-            "fontColor": {
+            },
+            "gridlineShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "labelColor": {
               "solid": {
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1F2933'"
+                      "Value": "'#52606D'"
                     }
                   }
                 }
@@ -97,17 +108,69 @@
           }
         }
       ],
-      "selection": [
+      "valueAxis": [
         {
           "properties": {
-            "singleSelect": {
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
             },
-            "strictSingleSelect": {
+            "gridlineColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#EDF0F3'"
+                    }
+                  }
+                }
+              }
+            },
+            "labelColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dataPoint": [
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E39A2B'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "show": {
               "expr": {
                 "Literal": {
                   "Value": "false"
@@ -117,11 +180,6 @@
           }
         }
       ]
-    },
-    "syncGroup": {
-      "groupName": "jour",
-      "fieldChanges": false,
-      "filterChanges": true
     },
     "visualContainerObjects": {
       "title": [
@@ -137,7 +195,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Jour de service'"
+                  "Value": "'Le flux n'annonce que des multiples de 5 minutes'"
                 }
               }
             },
@@ -177,6 +235,51 @@
               "expr": {
                 "Literal": {
                   "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Passages en retard, par minute annoncée — le seuil tombe sur un palier'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'left'"
                 }
               }
             }

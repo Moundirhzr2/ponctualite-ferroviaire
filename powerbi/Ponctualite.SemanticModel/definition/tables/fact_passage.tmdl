@@ -264,6 +264,12 @@ table fact_passage
 		summarizeBy: none
 		sortByColumn: tranche_ordre
 
+	/// Semaine ou week-end. WEEKDAY(..., 2) numerote lundi 1 et dimanche 7.
+	column 'Type de jour' = IF(WEEKDAY(fact_passage[service_date], 2) >= 6, "Week-end", "Semaine")
+		dataType: string
+		lineageTag: 7949f229-375d-418f-bd3d-33b203406718
+		summarizeBy: none
+
 	partition fact_passage = m
 		mode: import
 		source =
