@@ -1,0 +1,24 @@
+2026-10-03 21:18:58,977 INFO archiving hosted observations, published GTFS reference
+2026-10-03 21:22:04,042 INFO   5 day(s) missing from the archive, unrecoverable: 2026-09-21, 2026-09-22, 2026-09-23, 2026-09-24, 2026-09-25
+2026-10-03 21:22:04,042 INFO   synced 645115 observation changes and 3739 collector runs from Supabase
+2026-10-03 21:22:20,349 INFO   new GTFS publication 20261002195130, downloading
+2026-10-03 21:22:20,349 INFO   archived sncf-gtfs-20261002195130.zip (5.4 MB)
+2026-10-03 21:22:20,349 INFO   11 publication(s) missing from the archive, downloading
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260921182309.zip (3.6 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260922195045.zip (4.9 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260923200430.zip (4.9 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260924194025.zip (4.9 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260925195617.zip (4.9 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260926200450.zip (4.8 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260927193949.zip (5.0 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260928194902.zip (5.0 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260929200139.zip (5.3 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20260930201402.zip (5.4 MB)
+2026-10-03 21:22:20,349 INFO   recovered sncf-gtfs-20261001195722.zip (5.4 MB)
+2026-10-03 21:22:20,349 INFO archive up to date in 201.4 s
+2026-10-03 21:26:53,739 INFO archiving hosted observations, published GTFS reference
+2026-10-03 21:26:58,966 INFO   5 day(s) missing from the archive, unrecoverable: 2026-09-21, 2026-09-22, 2026-09-23, 2026-09-24, 2026-09-25
+2026-10-03 21:26:58,966 INFO   synced 232 observation changes and 1 collector runs from Supabase
+2026-10-03 21:27:01,259 INFO   latest GTFS publication (20261002195130) already archived
+2026-10-03 21:27:01,259 INFO   no gap in the GTFS archive
+2026-10-03 21:27:01,259 INFO archive up to date in 7.5 s

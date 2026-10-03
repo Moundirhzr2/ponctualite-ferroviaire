@@ -27,7 +27,7 @@ clone that has no Supabase project.
 import logging
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -159,6 +159,34 @@ def sync_runs(api, connection):
     return copied
 
 
+def report_gaps(connection):
+    """Name the service days missing from the archive, which no source can return.
+
+    Supabase keeps seven days; a day that fell out of that window before it was
+    synced is gone for good. A silent hole is worse than a loud one: every rate
+    computed over the period keeps working, on a sample nobody thought to doubt.
+    """
+    days = [row[0] for row in connection.execute(
+        "SELECT DISTINCT service_date FROM observation ORDER BY service_date")]
+    if len(days) < 2:
+        return
+
+    present = set(days)
+    missing = []
+    current = date.fromisoformat(days[0])
+    last = date.fromisoformat(days[-1])
+    while current <= last:
+        if current.isoformat() not in present:
+            missing.append(current.isoformat())
+        current += timedelta(days=1)
+
+    if missing:
+        logging.warning(
+            "%d day(s) missing from the archive, unrecoverable: %s",
+            len(missing), ", ".join(missing),
+        )
+
+
 def main():
     logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
 
@@ -175,6 +203,7 @@ def main():
     try:
         observations = sync_observations(api, connection)
         runs = sync_runs(api, connection)
+        report_gaps(connection)
     except Exception as error:
         logging.error("sync failed: %s", error)
         return 1

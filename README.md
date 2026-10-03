@@ -433,6 +433,41 @@ contrôle qui bloque la publication vaut mieux qu'un tableau de bord qui affiche
 un chiffre faux sans le dire. Ici, le rapport a continué d'afficher les données
 de la veille au lieu d'un résultat douteux.
 
+### 2026-10-03 — Cinq jours perdus : l'archivage ne pouvait pas dépendre de moi
+
+La règle « lancer `refresh.py` au moins une fois par semaine » a tenu deux
+semaines. Du 20 septembre au 3 octobre, elle n'a pas été appliquée, et Supabase
+a fait ce qu'on lui a demandé : supprimer les observations de plus de 7 jours.
+**Les journées du 21 au 25 septembre n'existent plus nulle part.** Cinq jours de
+service, environ 390 000 passages, irrécupérables.
+
+Le défaut n'est pas l'oubli, il est dans la conception : la seule copie durable
+dépendait d'une action humaine répétée, alors que la source, elle, est
+automatique. Une rétention courte et un archivage manuel ne vont pas ensemble.
+
+**Correction.** `src/archive.py` regroupe les deux seules étapes dont le retard
+coûte des données — rapatrier la collecte hébergée, archiver la publication GTFS
+du jour — et une tâche planifiée l'exécute toutes les 4 heures. Le reste du
+pipeline garde son rythme manuel : il se reconstruit à l'identique depuis
+l'archive, quand on veut.
+
+La répétition toutes les 4 heures remplace l'option « rattraper une exécution
+manquée », que Windows ne laisse pas activer sans droits d'administrateur :
+six créneaux par jour suffisent pour qu'un portable allumé une fois dans la
+journée soit à jour.
+
+**Un trou se voit désormais.** `sync_supabase.py` compare les jours présents dans
+l'archive et nomme ceux qui manquent :
+
+```
+5 day(s) missing from the archive, unrecoverable: 2026-09-21, 2026-09-22,
+2026-09-23, 2026-09-24, 2026-09-25
+```
+
+Un trou silencieux est pire qu'un trou bruyant : tous les taux calculés sur la
+période continuent de fonctionner, sur un échantillon que personne ne songe à
+mettre en doute.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
@@ -602,12 +637,44 @@ le chemin absolu de `data/export`, puis *Actualiser*.
 
 C'est le seul réglage machine-dépendant du projet.
 
+## Archivage automatique
+
+Deux sources oublient. Supabase supprime les observations de plus de 7 jours
+pour tenir dans l'offre gratuite, et chaque publication GTFS abandonne les
+trajets antérieurs à sa date — le Point d'Accès National n'en garde que 25.
+Tout le reste du pipeline peut être rejoué à n'importe quel moment ; ces deux
+étapes-là, non.
+
+`src/archive.py` les exécute, et une tâche planifiée Windows l'appelle toutes
+les 4 heures :
+
+```powershell
+schtasks /Query /TN SncfArchiveSync          # état et prochaine exécution
+schtasks /Run   /TN SncfArchiveSync          # forcer une exécution
+schtasks /Delete /TN SncfArchiveSync /F      # retirer l'automatisation
+```
+
+Le journal est dans `data/archive.log`. Une exécution sans rien de neuf prend
+7 secondes ; la tâche est donc répétée plutôt que programmée une fois par jour,
+ce qui la rend insensible à une machine éteinte au mauvais moment.
+
+**Une case à cocher manuellement.** Par défaut, Windows refuse de lancer une
+tâche quand le portable est sur batterie. Dans le *Planificateur de tâches*,
+onglet *Conditions* de `SncfArchiveSync`, décocher « Ne démarrer la tâche que si
+l'ordinateur est alimenté par le secteur ». Sans ça, l'archivage ne tourne que
+branché.
+
+`src/refresh.py` reste le point d'entrée pour tout reconstruire — référentiel,
+schéma en étoile, contrôles, export Power BI — mais plus rien n'est perdu si on
+tarde à le lancer.
+
 ## Utilisation
 
 ```bash
 python src/probe_feeds.py       # vérifier qu'un flux contient réellement des données
 python src/reconcile_check.py   # mesurer le taux de jointure GTFS-RT ↔ GTFS
 python src/refresh.py           # tout reconstruire : synchro Supabase, GTFS, marts, contrôles, export
+python src/archive.py           # archivage quotidien : collecte hébergée + référentiel GTFS
 python src/sync_supabase.py     # rapatrier la collecte hébergée dans data/punctuality.db
 python src/ingest_sncf.py       # collecte locale ponctuelle (secours)
 python src/download_gtfs.py     # archiver la dernière publication du GTFS théorique
@@ -669,10 +736,11 @@ pg_cron, toutes les 5 min
   est refusée, quel que soit l'appelant.
 - **Écritures sobres** : une ligne n'est réécrite que si une valeur change, ou
   une seule fois quand le passage est confirmé (voir journal du 13/09).
-- **Rétention de 7 jours** dans Supabase : une semaine représente environ
+- **Rétention de 7 jours** dans Supabase, désormais couverte par l'archivage
+  automatique (voir plus bas) : une semaine représente environ
   300 Mo pour 500 Mo disponibles. L'archive complète est `data/punctuality.db`,
-  alimentée par `src/sync_supabase.py` — **lancer `refresh.py` au moins une fois
-  par semaine**.
+  alimentée toutes les 4 heures par `src/archive.py` (journal du 03/10, après
+  cinq jours perdus faute de l'avoir fait à la main).
 - **Lecture** : l'API n'autorise que la lecture (RLS). Renseigner `.env` d'après
   `.env.example` avec la clé publishable du projet.
 
