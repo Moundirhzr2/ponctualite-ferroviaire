@@ -33,7 +33,7 @@ def probe(label, url):
         feed.ParseFromString(payload)
     except Exception as error:
         return f"{label}: NOT A VALID GTFS-RT FEED - {error} ({len(payload)} bytes)"
-
+    
     trips = sum(1 for e in feed.entity if e.HasField("trip_update"))
     vehicles = sum(1 for e in feed.entity if e.HasField("vehicle"))
     alerts = sum(1 for e in feed.entity if e.HasField("alert"))

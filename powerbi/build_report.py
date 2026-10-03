@@ -33,7 +33,7 @@ compteur = [0]
 
 def ident(cle):
     compteur[0] += 1
-    return hashlib.md5(f"{cle}-{compteur[0]}".encode()).hexdigest()[:20]
+    return hashlib.sha512(f"{cle}-{compteur[0]}".encode()).hexdigest()[:20]
 
 
 def litt(valeur):
