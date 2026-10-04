@@ -512,6 +512,58 @@ phénomène — les trains de semaine sont plus nombreux dans ce palier, et le s
 « au plus 5 minutes » les compte ponctuels. Un indicateur trop généreux ne se
 contente pas de flatter un chiffre : il efface des différences réelles.
 
+### 2026-10-04 — Le plafond Supabase venait des identifiants, pas des données
+
+La base hébergée atteignait 409 Mo sur les 500 de l'offre gratuite, pour une
+semaine de collecte. Avant de réduire quoi que ce soit, la question était : où
+partent ces octets ?
+
+| Objet | Taille |
+|---|---|
+| Index de clé primaire | **192 Mo** |
+| Table des observations | 161 Mo |
+| Index de synchronisation | 35 Mo |
+
+L'index pesait plus lourd que les données. Chaque ligne y recopiait son
+identifiant de trajet — une centaine de caractères chez SNCF — et son
+identifiant d'arrêt, une trentaine. Un B-tree de longues clés texte se
+fragmente vite : environ 300 octets d'index par ligne, pour retrouver un passage.
+
+**Correction.** Les identifiants partent dans trois dictionnaires qui stockent
+chaque chaîne une seule fois ; la table d'observations ne garde que des
+références entières de 4 octets, et sa clé primaire tombe à 16 octets. Les
+colonnes sont rangées des plus larges aux plus étroites pour ne perdre aucun
+octet d'alignement. `public.observation` subsiste sous forme de vue, avec
+exactement les colonnes d'avant : la synchronisation locale n'a pas changé
+d'une ligne de code.
+
+| | Avant | Après |
+|---|---|---|
+| Base entière | 409 Mo | **136 Mo** |
+| Par observation | ~616 octets | **~174 octets** |
+| Rétention tenable sur 500 Mo | ~7 jours | plus de 4 semaines |
+
+**La migration elle-même avait un piège.** Copier les 646 276 lignes vers la
+nouvelle table pendant que l'ancienne existe encore aurait culminé vers 520 Mo,
+au-dessus du plafond — et Postgres ne libère l'espace d'un objet supprimé qu'à la
+fin de la transaction. Les deux index de l'ancienne table ont donc été supprimés
+dans une première migration, à part : 227 Mo rendus avant la copie, un pic réel
+autour de 300 Mo. La collecte était suspendue pendant l'opération, et l'archive
+locale vérifiée au même curseur que Supabase avant la première instruction.
+
+Un détail de conception, aussi : insérer les nouveaux identifiants avec
+`ON CONFLICT DO NOTHING` aurait consommé une valeur d'identité pour chaque
+identifiant déjà connu — environ 10 000 par exécution, toutes les cinq minutes,
+de quoi épuiser un entier de 4 octets en moins de deux ans. Seuls les
+identifiants absents du dictionnaire sont insérés.
+
+Vérifié après coup : 646 276 lignes et le même `sync_seq` maximal qu'avant, la
+lecture publique sert les mêmes colonnes, l'écriture reste refusée (401), la
+fonction d'ingestion n'est pas exposée par l'API (404), et les audits de
+sécurité et de performance de Supabase ne remontent rien. La rétention passe de
+7 à 14 jours ; elle pourrait aller plus loin, mais l'archive locale est
+alimentée toutes les quatre heures et n'en a plus besoin.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
@@ -642,7 +694,7 @@ d'ensemble, l'autocar 87,7 %, le train 92,3 %.
 
 ## Archivage automatique
 
-Deux sources oublient. Supabase supprime les observations de plus de 7 jours
+Deux sources oublient. Supabase supprime les observations de plus de 14 jours
 pour tenir dans l'offre gratuite, et chaque publication GTFS abandonne les
 trajets antérieurs à sa date — le Point d'Accès National n'en garde que 25.
 Tout le reste du pipeline peut être rejoué à n'importe quel moment ; ces deux
@@ -736,9 +788,12 @@ pg_cron, toutes les 5 min
   est refusée, quel que soit l'appelant.
 - **Écritures sobres** : une ligne n'est réécrite que si une valeur change, ou
   une seule fois quand le passage est confirmé (voir journal du 13/09).
-- **Rétention de 7 jours** dans Supabase, désormais couverte par l'archivage
-  automatique (voir plus bas) : une semaine représente environ
-  300 Mo pour 500 Mo disponibles. L'archive complète est `data/punctuality.db`,
+- **Stockage compact** : les identifiants SNCF sont stockés une seule fois,
+  dans des dictionnaires, et les observations n'en gardent que des références
+  entières — environ 174 octets par ligne au lieu de 616 (journal du 04/10).
+  `public.observation` est une vue qui restitue les identifiants en clair.
+- **Rétention de 14 jours** dans Supabase, couverte par l'archivage automatique
+  (voir plus bas) : environ 240 Mo pour 500 disponibles. L'archive complète est `data/punctuality.db`,
   alimentée toutes les 4 heures par `src/archive.py` (journal du 03/10, après
   cinq jours perdus faute de l'avoir fait à la main).
 - **Lecture** : l'API n'autorise que la lecture (RLS). Renseigner `.env` d'après
@@ -772,6 +827,6 @@ Disable-ScheduledTask -TaskName "SncfRTIngest"
 - [x] Indicateurs de dispersion (médiane, p90, p99) en complément de la moyenne
 - [x] Rapport Power BI (courbe horaire, classements des lignes et des gares)
 - [x] Sortir la collecte du poste personnel (Supabase : Edge Function, `pg_cron`, Postgres)
-- [ ] Identifiants entiers dans la base hébergée : ~526 octets par ligne aujourd'hui, la rétention de 7 jours pourrait passer à plusieurs semaines
+- [x] Identifiants entiers dans la base hébergée : 409 Mo ramenés à 136 Mo, rétention portée à 14 jours
 - [x] Séparer semaine et week-end dans la courbe horaire (15 journées complètes, test de permutation exact)
 - [ ] Carte des gares (visuel désactivé par défaut dans Power BI, voir `docs/powerbi.md`)

@@ -21,6 +21,12 @@
 // A run arriving within four minutes of the previous one is also refused, so
 // even a caller holding the token cannot make the SNCF feed be fetched, or the
 // database written, more than once per window.
+//
+// Storage is compact since 4 October 2026: SNCF's long text identifiers live
+// once each in dictionary tables, and observations carry integer references.
+// The function hands each batch to ingest.store_batch, which resolves the
+// identifiers and applies the change-only rule in a single round trip; see
+// supabase/migrations/20261004101000_compact_observation_keys.sql.
 
 import postgres from 'https://deno.land/x/postgresjs@v3.4.5/mod.js'
 import GtfsRealtimeBindings from 'npm:gtfs-realtime-bindings@1'
@@ -31,12 +37,6 @@ const BATCH_SIZE = 5000
 // Any constant works; it names the lock that serialises concurrent run claims.
 const CLAIM_LOCK = 72710531
 
-// gtfs-realtime TripDescriptor.ScheduleRelationship
-const RELATIONSHIP: Record<number, string> = {
-  0: 'SCHEDULED', 1: 'ADDED', 2: 'UNSCHEDULED',
-  3: 'CANCELED', 5: 'REPLACEMENT', 6: 'DUPLICATED', 7: 'DELETED',
-}
-
 const sql = postgres(Deno.env.get('SUPABASE_DB_URL')!, { prepare: false })
 
 type Row = {
@@ -45,7 +45,8 @@ type Row = {
   stop_id: string
   stop_sequence: number
   route_id: string | null
-  schedule_relationship: string
+  // the raw GTFS-RT enum value; public.observation names it
+  schedule_relationship: number
   arrival_delay: number | null
   departure_delay: number | null
   arrival_time: number | null
@@ -90,7 +91,7 @@ function extractRows(feed: any, fallbackDate: string, observedAt: number): Map<s
 
     const trip = update.trip ?? {}
     const serviceDate = isoDate(trip.startDate || fallbackDate)
-    const relationship = RELATIONSHIP[trip.scheduleRelationship ?? 0] ?? 'UNKNOWN'
+    const relationship: number = trip.scheduleRelationship ?? 0
 
     for (const stop of update.stopTimeUpdate ?? []) {
       const row: Row = {
@@ -113,10 +114,9 @@ function extractRows(feed: any, fallbackDate: string, observedAt: number): Map<s
   return rows
 }
 
-// Each batch travels as one JSON document unpacked by jsonb_to_recordset, which
-// types every column explicitly and handles nulls natively. Passing one array per
-// column instead would leave the driver to infer array types, which it cannot do
-// reliably when a column's first value is null.
+// Each batch travels as one JSON document, unpacked inside the database by
+// ingest.store_batch, which types every column explicitly and handles nulls
+// natively.
 //
 // The parameter is cast ::text before ::jsonb on purpose. With a bare ::jsonb the
 // driver sees a jsonb parameter and JSON-encodes the already-encoded string a
@@ -127,47 +127,8 @@ async function upsert(rows: Row[]): Promise<number> {
   await sql.begin(async (tx) => {
     for (let start = 0; start < rows.length; start += BATCH_SIZE) {
       const batch = JSON.stringify(rows.slice(start, start + BATCH_SIZE))
-      const result = await tx`
-        insert into public.observation (
-            service_date, trip_id, stop_id, stop_sequence, route_id,
-            schedule_relationship, arrival_delay, departure_delay,
-            arrival_time, departure_time, observed_at
-        )
-        select service_date, trip_id, stop_id, stop_sequence, route_id,
-               schedule_relationship, arrival_delay, departure_delay,
-               arrival_time, departure_time, observed_at
-        from jsonb_to_recordset(${batch}::text::jsonb) as incoming (
-            service_date date, trip_id text, stop_id text, stop_sequence integer,
-            route_id text, schedule_relationship text, arrival_delay integer,
-            departure_delay integer, arrival_time bigint, departure_time bigint,
-            observed_at bigint
-        )
-        on conflict (service_date, trip_id, stop_id, stop_sequence) do update set
-            route_id              = excluded.route_id,
-            schedule_relationship = excluded.schedule_relationship,
-            arrival_delay         = excluded.arrival_delay,
-            departure_delay       = excluded.departure_delay,
-            arrival_time          = excluded.arrival_time,
-            departure_time        = excluded.departure_time,
-            observed_at           = excluded.observed_at,
-            updated_at            = now(),
-            -- the local sync's cursor: every change must move the row forward
-            sync_seq              = nextval('public.observation_sync_seq')
-        where excluded.observed_at > observation.observed_at
-          and (
-                excluded.arrival_delay         is distinct from observation.arrival_delay
-             or excluded.departure_delay       is distinct from observation.departure_delay
-             or excluded.arrival_time          is distinct from observation.arrival_time
-             or excluded.departure_time        is distinct from observation.departure_time
-             or excluded.schedule_relationship is distinct from observation.schedule_relationship
-             or excluded.route_id              is distinct from observation.route_id
-             -- is_past compares arrival_time with observed_at, so the first reading
-             -- taken after the train has passed must be kept even when nothing else
-             -- changed, or the call would stay marked as not yet happened
-             or (observation.observed_at < observation.arrival_time
-                 and excluded.observed_at >= excluded.arrival_time)
-          )`
-      written += result.count
+      const [result] = await tx`select ingest.store_batch(${batch}::text::jsonb) as written`
+      written += result.written
     }
   })
   return written
