@@ -230,7 +230,7 @@ def legende(position="TopCenter"):
 # ---------------------------------------------------------------- page 1
 def page_vue():
     v = []
-    v.append(texte("titre", 20, 10, 560, 74, [
+    v.append(texte("titre", 20, 10, 500, 74, [
         paragraphe([("Ponctualité du réseau ferroviaire français", {"taille": "18pt", "gras": "600", "couleur": BLEU})]),
         paragraphe([("Flux GTFS-RT SNCF confronté aux horaires théoriques", {"taille": "9pt", "couleur": GRIS})]),
     ]))
@@ -248,9 +248,9 @@ def page_vue():
             "padding": [{"properties": {"top": litt(0), "bottom": litt(0), "left": litt(0), "right": litt(0)}}],
         },
     ))
-    v.append(segment("seg-jour", "fact_passage", "Jour", "Jour de service", 600, 14, 160, 88, "jour", liste_deroulante=True))
-    v.append(segment("seg-type", "fact_passage", "Type de jour", "Type de jour", 780, 14, 220, 88, "type"))
-    v.append(segment("seg-mode", "dim_route", "mode", "Mode", 1020, 14, 240, 88, "mode"))
+    v.append(segment("seg-jour", "fact_passage", "Jour", "Jour de service", 540, 14, 150, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type", "fact_passage", "Type de jour", "Type de jour", 705, 14, 220, 88, "type"))
+    v.append(segment("seg-mode", "dim_route", "mode", "Mode", 940, 14, 320, 88, "mode"))
 
     cartes = [
         ("Taux ponctualite observe", "Ponctualité (0 ou 5 min annoncés)", BLEU),
@@ -327,13 +327,13 @@ def page_vue():
 # ---------------------------------------------------------------- page 2
 def page_lignes():
     v = []
-    v.append(texte("titre2", 20, 10, 560, 74, [
+    v.append(texte("titre2", 20, 10, 500, 74, [
         paragraphe([("Où la ponctualité décroche", {"taille": "18pt", "gras": "600", "couleur": BLEU})]),
         paragraphe([("Lignes et gares d'au moins 20 passages observés  ·  tout est croisé : cliquez sur une barre", {"taille": "9pt", "couleur": GRIS})]),
     ]))
-    v.append(segment("seg-jour2", "fact_passage", "Jour", "Jour de service", 600, 14, 160, 88, "jour", liste_deroulante=True))
-    v.append(segment("seg-type2", "fact_passage", "Type de jour", "Type de jour", 780, 14, 220, 88, "type"))
-    v.append(segment("seg-mode2", "dim_route", "mode", "Mode", 1020, 14, 240, 88, "mode"))
+    v.append(segment("seg-jour2", "fact_passage", "Jour", "Jour de service", 540, 14, 150, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type2", "fact_passage", "Type de jour", "Type de jour", 705, 14, 220, 88, "type"))
+    v.append(segment("seg-mode2", "dim_route", "mode", "Mode", 940, 14, 320, 88, "mode"))
 
     objets_barres = {
         "categoryAxis": [{"properties": {"showAxisTitle": litt(False), "labelColor": couleur(ENCRE), "fontSize": litt(9)}}],
@@ -461,6 +461,105 @@ def page_methode():
     return "PageMethode", "Méthode et qualité", v
 
 
+# ---------------------------------------------------------------- page 4
+def degrade_ponctualite():
+    """Colour each point by how far it sits from the network's own rate.
+
+    A diverging scale with a neutral midpoint at the network average (92 %): the
+    typical station stays quiet grey, and only the ones that stand out, on
+    either side, take a colour. The first version went red to amber to navy, and
+    amber blended into navy as a muddy olive exactly where most stations sit.
+    """
+    def etape(hexa, valeur):
+        return {"color": {"Literal": {"Value": f"'{hexa}'"}}, "value": {"Literal": {"Value": f"{valeur}D"}}}
+    return [{
+        "properties": {"fill": {"solid": {"color": {"expr": {"FillRule": {
+            "Input": champ_mesure("fact_passage", "Taux ponctualite observe"),
+            "FillRule": {"linearGradient3": {
+                "min": etape(ROUGE, 0.80),
+                "mid": etape("#C3CAD3", 0.92),
+                "max": etape(BLEU, 1.0),
+                "nullColoringStrategy": {"strategy": {"Literal": {"Value": "'asZero'"}}},
+            }},
+        }}}}}},
+        "selector": {"data": [{"dataViewWildcard": {"matchingOption": 1}}]},
+    }]
+
+
+def page_carte():
+    """A map without a map service: every station placed by its own coordinates.
+
+    Power BI's map visuals send coordinates to Bing or Azure Maps, which is why
+    they ship disabled. A scatter of longitude against latitude needs nothing
+    outside the report, and with a few thousand stations the outline of the
+    network, and of the country, draws itself. The plot is kept close to square
+    so that one degree of longitude, about 0.68 of a degree of latitude at 47 N,
+    does not stretch the country sideways.
+    """
+    v = []
+    v.append(texte("titre4", 20, 10, 500, 74, [
+        paragraphe([("Où se trouvent les gares en retard", {"taille": "18pt", "gras": "600", "couleur": BLEU})]),
+        paragraphe([("Chaque gare placée par ses coordonnées, sans service cartographique externe", {"taille": "9pt", "couleur": GRIS})]),
+    ]))
+    v.append(segment("seg-jour4", "fact_passage", "Jour", "Jour de service", 540, 14, 150, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type4", "fact_passage", "Type de jour", "Type de jour", 705, 14, 220, 88, "type"))
+    v.append(segment("seg-mode4", "dim_route", "mode", "Mode", 940, 14, 320, 88, "mode"))
+
+    cache = {"show": litt(False), "gridlineShow": litt(False), "showAxisTitle": litt(False)}
+    objets_carte = {
+        # Bornes de la France métropolitaine : les gares étrangères desservies
+        # par les liaisons transfrontalières sortent du cadre.
+        "categoryAxis": [{"properties": dict(cache, start=litt(-5.2), end=litt(10.3))}],
+        "valueAxis": [{"properties": dict(cache, start=litt(41.3), end=litt(51.2))}],
+        "dataPoint": degrade_ponctualite(),
+        "fillPoint": [{"properties": {"show": litt(True)}}],
+    }
+    v.append(visuel(
+        "carte", "scatterChart", 20, 112, 620, 592,
+        roles={
+            "Category": [col("dim_station", "stop_name", actif=True, nom_affiche="Gare")],
+            "X": [mes("Longitude gare", nom_affiche="Longitude")],
+            "Y": [mes("Latitude gare", nom_affiche="Latitude")],
+            "Tooltips": [
+                mes("Passages observes", nom_affiche="Passages observés"),
+                mes("Taux ponctualite observe", nom_affiche="Taux (0 ou 5 min)"),
+                mes("Taux ponctualite strict", nom_affiche="Taux strict"),
+            ],
+        },
+        titre="Le réseau, gare par gare",
+        sous_titre="Gris : dans la moyenne du réseau (92 %) · rouge : en dessous · bleu : au-dessus",
+        objets=objets_carte,
+    ))
+
+    v.append(carte("gares", "Gares mesurees", "Gares d'au moins 20 passages", 660, 112, 290, 96, ENCRE))
+    v.append(carte("taux4", "Taux ponctualite observe", "Ponctualité (0 ou 5 min annoncés)", 970, 112, 290, 96, BLEU))
+
+    v.append(visuel(
+        "table-gares", "tableEx", 660, 220, 600, 330,
+        roles={"Values": [
+            col("dim_station", "stop_name", nom_affiche="Gare"),
+            mes("Passages observes (min 20)", nom_affiche="Passages"),
+            mes("Taux ponctualite observe", nom_affiche="Taux (0 ou 5 min)"),
+            mes("Taux ponctualite strict", nom_affiche="Taux strict"),
+        ]},
+        titre="Cliquez une gare pour la situer sur la carte",
+        sous_titre="Triée de la moins ponctuelle à la plus ponctuelle",
+        objets={
+            "grid": [{"properties": {"gridVertical": litt(False), "outlineColor": couleur("#E4E7EB")}}],
+            "columnHeaders": [{"properties": {"fontColor": couleur(GRIS), "fontSize": litt(9), "bold": litt(True)}}],
+            "values": [{"properties": {"fontSize": litt(9), "fontColor": couleur(ENCRE)}}],
+            "total": [{"properties": {"totals": litt(False)}}],
+        },
+        tri=[{"field": champ_mesure("fact_passage", "Taux ponctualite observe"), "direction": "Ascending"}],
+    ))
+
+    v.append(texte("note-carte", 660, 562, 600, 142, [
+        paragraphe([("Lire la carte", {"taille": "11pt", "gras": "600", "couleur": BLEU})]),
+        paragraphe([("Aucun fond de carte : la forme du pays vient des gares elles-mêmes. Une gare n'apparaît qu'à partir de 20 passages observés dans la sélection en cours, et les gares étrangères des liaisons transfrontalières sortent du cadre. Les segments filtrent la carte, le tableau et les chiffres ensemble.", {"taille": "9pt", "couleur": GRIS})]),
+    ], fond="#FFFFFF"))
+    return "PageCarte", "Carte des gares", v
+
+
 def ecrire_page(nom, affichage, visuels):
     dossier = PAGES / nom
     if dossier.exists():
@@ -564,7 +663,7 @@ def main():
     if ancienne.exists():
         shutil.rmtree(ancienne)
 
-    pages = [page_vue(), page_lignes(), page_methode()]
+    pages = [page_vue(), page_lignes(), page_carte(), page_methode()]
     for nom, affichage, visuels in pages:
         ecrire_page(nom, affichage, visuels)
 

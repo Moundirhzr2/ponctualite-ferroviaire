@@ -3,6 +3,7 @@
   "pageOrder": [
     "PageVue",
     "PageLignes",
+    "PageCarte",
     "PageMethode"
   ],
   "activePageName": "PageVue"

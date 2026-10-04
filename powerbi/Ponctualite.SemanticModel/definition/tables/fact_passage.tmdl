@@ -109,6 +109,23 @@ table fact_passage
 		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 8c81e2c5-af5f-4e6b-8264-a18061dc52ca
 
+	/// Position de la gare pour la carte, vide sous 20 passages observes : une
+	/// gare trop peu observee disparait de la carte au lieu d'y afficher un taux
+	/// sans valeur. La moyenne regroupe les quais d'une meme gare, qui partagent
+	/// un nom et des coordonnees.
+	measure 'Longitude gare' = IF([Passages observes] >= 20, AVERAGE(dim_station[stop_lon]))
+		formatString: 0.000
+		lineageTag: 0810ff24-951c-4411-ad8a-647f693a8c60
+
+	measure 'Latitude gare' = IF([Passages observes] >= 20, AVERAGE(dim_station[stop_lat]))
+		formatString: 0.000
+		lineageTag: 6d2247a3-42a2-4879-92b7-a1d50263910a
+
+	/// Gares d'au moins 20 passages observes dans le contexte courant.
+	measure 'Gares mesurees' = COUNTROWS(FILTER(VALUES(dim_station[stop_name]), [Passages observes] >= 20))
+		formatString: #,0
+		lineageTag: cb0f2d28-5cb2-4fe0-83c6-2aa6e299a05d
+
 	column service_date
 		dataType: dateTime
 		formatString: yyyy-mm-dd

@@ -27,15 +27,16 @@ données. Les bandeaux « Certaines tables ont des données incomplètes » et
 **Actualiser** dans le ruban : les trois tables se chargent et les bandeaux
 disparaissent.
 
-**Le rapport contient trois pages :**
+**Le rapport contient quatre pages :**
 
 | Page | Ce qu'elle montre |
 |---|---|
 | Vue d'ensemble | Les deux bornes du taux, la courbe horaire, la distribution des retards annoncés, la vérification jour par jour |
 | Lignes et gares | Les dix pires lignes et gares, un nuage volume × taux, le détail trié |
+| Carte des gares | Chaque gare placée par ses coordonnées et colorée par sa ponctualité, sans service cartographique ; un tableau cliquable pour la situer |
 | Méthode et qualité | L'écart entre conventions, les trois populations, la couverture horaire, les corrections appliquées |
 
-Les segments *Jour de service* et *Mode* sont synchronisés entre les pages
+Les segments *Jour de service*, *Type de jour* et *Mode* sont synchronisés entre les pages
 (`syncGroup` dans le JSON), et le filtrage croisé reste actif partout : cliquer
 une barre filtre les autres visuels de la page.
 
@@ -52,7 +53,7 @@ visuel au repos, mais faux dès le premier filtre.
 visuel dans son propre fichier ; la mise en page, les titres et les couleurs sont
 donc générés par `powerbi/build_report.py`, relisibles en revue de code et
 reproductibles après un changement de mesure — relancer le script avec Power BI
-fermé réécrit les trois pages à l'identique. Le thème (`StaticResources/RegisteredResources/PonctualiteTheme.json`)
+fermé réécrit les quatre pages à l'identique. Le thème (`StaticResources/RegisteredResources/PonctualiteTheme.json`)
 porte la palette, les polices et les cadres, ce qui évite de répéter la mise en
 forme sur chaque visuel.
 
@@ -114,10 +115,16 @@ les coordonnées à un service cartographique externe (Bing/Azure Maps).
 L'activation se fait dans *Fichier > Options et paramètres > Options > Global >
 Sécurité*, et revient à accepter cet envoi.
 
-Le rapport n'en dépend pas : la ponctualité par gare est rendue par un
-histogramme, sans service externe. Les colonnes `stop_lat` / `stop_lon` restent
-catégorisées Latitude/Longitude dans le modèle, prêtes à servir si la carte est
-activée.
+Le rapport n'en dépend pas. La page *Carte des gares* est un nuage de points :
+mesures `Longitude gare` et `Latitude gare` sur les axes, une gare par point,
+couleur par une règle de dégradé sur `Taux ponctualite observe` (`FillRule` /
+`linearGradient3` dans le JSON). Bornes d'axes fixées sur la métropole et cadre
+presque carré, pour que la France garde ses proportions. Rien n'est envoyé hors
+du rapport.
+
+La taille des points, en revanche, n'a pas pu être réglée depuis le JSON :
+`bubbles.bubbleSize`, écrit en décimal comme en entier, est ignoré par Power BI.
+Elle se règle à la main dans le volet *Format* si on le souhaite.
 
 ### Pièges rencontrés lors de la mise au point
 

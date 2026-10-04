@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "f052633f6e557658a2be",
+  "name": "454799b28dbd3cf76ab6",
   "position": {
-    "x": 940,
+    "x": 705,
     "y": 14,
-    "z": 4,
+    "z": 23,
     "height": 88,
-    "width": 320,
-    "tabOrder": 4
+    "width": 220,
+    "tabOrder": 23
   },
   "visual": {
     "visualType": "slicer",
@@ -20,14 +20,14 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dim_route"
+                      "Entity": "fact_passage"
                     }
                   },
-                  "Property": "mode"
+                  "Property": "Type de jour"
                 }
               },
-              "queryRef": "dim_route.mode",
-              "nativeQueryRef": "mode"
+              "queryRef": "fact_passage.Type de jour",
+              "nativeQueryRef": "Type de jour"
             }
           ]
         }
@@ -119,7 +119,7 @@
       ]
     },
     "syncGroup": {
-      "groupName": "mode",
+      "groupName": "type",
       "fieldChanges": false,
       "filterChanges": true
     },
@@ -137,7 +137,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Mode'"
+                  "Value": "'Type de jour'"
                 }
               }
             },

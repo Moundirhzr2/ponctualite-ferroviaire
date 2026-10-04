@@ -13,9 +13,10 @@ ligne, par gare et par tranche horaire — avec un focus Grand Est
 
 ## Le rapport
 
-Trois pages, construites sur les seuls passages observés. Les segments
-« Jour de service » et « Mode » sont synchronisés d'une page à l'autre, et tous
-les visuels se croisent : cliquer sur une ligne filtre le reste de la page.
+Quatre pages, construites sur les seuls passages observés. Les segments
+« Jour de service », « Type de jour » et « Mode » sont synchronisés d'une page à
+l'autre, et tous les visuels se croisent : cliquer sur une ligne filtre le reste
+de la page.
 
 ![Vue d'ensemble du rapport Power BI](docs/images/powerbi-1-vue-ensemble.png)
 
@@ -32,9 +33,18 @@ rang en DAX, pas un filtre figé. Le nuage de points rappelle ce que les
 classements ne disent pas — un taux extrême sur 20 passages ne pèse pas autant
 qu'un taux médiocre sur 500.
 
-![Méthode et qualité](docs/images/powerbi-3-methode.png)
+![Carte des gares](docs/images/powerbi-3-carte.png)
 
-La troisième page expose les corrections appliquées avant publication, et ce que
+Une carte sans service cartographique : chaque gare est placée par ses propres
+coordonnées, et les quelque 3 000 gares mesurées dessinent d'elles-mêmes le
+réseau et le pays. L'échelle de couleur diverge autour de la moyenne nationale :
+une gare dans la norme reste grise, seules celles qui s'en écartent prennent une
+couleur. Les axes du Massif central ressortent en rouge au premier regard.
+Cliquer une gare dans le tableau la situe sur la carte.
+
+![Méthode et qualité](docs/images/powerbi-4-methode.png)
+
+La dernière page expose les corrections appliquées avant publication, et ce que
 chacune a changé. C'est elle qui sépare une mesure d'une impression.
 
 ## Sources
@@ -584,6 +594,27 @@ C'est l'intérêt des tests à côté des contrôles de données : les données 
 n'explorent que les cas qu'elles contiennent ; un test peut construire celui
 qu'elles ne contiennent pas encore.
 
+### 2026-10-04 — Une carte sans fond de carte
+
+Les visuels cartographiques de Power BI sont désactivés par défaut, et pour une
+bonne raison : ils envoient les coordonnées à Bing ou Azure Maps. Les activer
+revenait à accepter ce transfert pour afficher des gares publiques — sans
+risque ici, mais c'est le genre de décision qu'un rapport ne devrait pas prendre
+à la place de celui qui l'ouvre.
+
+La carte est donc un simple nuage de points : longitude en abscisse, latitude en
+ordonnée, une gare par point. Rien ne quitte le rapport. Il suffit de deux
+précautions pour que la France ressemble à la France : des bornes d'axes fixées
+sur la métropole, et un cadre presque carré, parce qu'un degré de longitude ne
+vaut qu'environ 0,68 degré de latitude à 47° nord.
+
+La première échelle de couleur allait du rouge à l'ambre puis au bleu marine.
+Mélangés, l'ambre et le marine donnaient un olive terne exactement là où se
+trouvent la plupart des gares, entre 90 et 98 %. L'échelle diverge désormais
+autour de la moyenne du réseau, 92 % en gris neutre : la gare ordinaire s'efface,
+et seules les gares qui s'écartent de la norme, d'un côté ou de l'autre, prennent
+une couleur. C'est ce qui fait apparaître le Massif central en rouge.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
@@ -885,4 +916,4 @@ Disable-ScheduledTask -TaskName "SncfRTIngest"
 - [x] Identifiants entiers dans la base hébergée : 409 Mo ramenés à 136 Mo, rétention portée à 14 jours
 - [x] Séparer semaine et week-end dans la courbe horaire (15 journées complètes, test de permutation exact)
 - [x] Tests du code et intégration continue (45 tests, GitHub Actions)
-- [ ] Carte des gares (visuel désactivé par défaut dans Power BI, voir `docs/powerbi.md`)
+- [x] Carte des gares, sans service cartographique externe (nuage de points longitude × latitude)

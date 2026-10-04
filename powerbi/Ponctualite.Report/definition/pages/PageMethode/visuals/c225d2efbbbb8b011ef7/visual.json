@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "58cd23b8738c8acceb82",
+  "name": "c225d2efbbbb8b011ef7",
   "position": {
-    "x": 640,
+    "x": 950,
     "y": 112,
-    "z": 26,
+    "z": 36,
     "height": 96,
     "width": 290,
-    "tabOrder": 26
+    "tabOrder": 36
   },
   "visual": {
     "visualType": "card",
@@ -23,11 +23,11 @@
                       "Entity": "fact_passage"
                     }
                   },
-                  "Property": "Retard median observe (min)"
+                  "Property": "Retard p99 observe (min)"
                 }
               },
-              "queryRef": "fact_passage.Retard median observe (min)",
-              "nativeQueryRef": "Retard median observe (min)"
+              "queryRef": "fact_passage.Retard p99 observe (min)",
+              "nativeQueryRef": "Retard p99 observe (min)"
             }
           ]
         }
@@ -106,7 +106,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Retard médian (min)'"
+                  "Value": "'Retard du 99e centile (min)'"
                 }
               }
             },

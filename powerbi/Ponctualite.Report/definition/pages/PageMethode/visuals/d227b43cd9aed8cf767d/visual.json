@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "1f151a0b40003975572b",
+  "name": "d227b43cd9aed8cf767d",
   "position": {
-    "x": 330,
+    "x": 640,
     "y": 112,
-    "z": 25,
+    "z": 35,
     "height": 96,
     "width": 290,
-    "tabOrder": 25
+    "tabOrder": 35
   },
   "visual": {
     "visualType": "card",
@@ -23,11 +23,11 @@
                       "Entity": "fact_passage"
                     }
                   },
-                  "Property": "Part observee"
+                  "Property": "Retard median observe (min)"
                 }
               },
-              "queryRef": "fact_passage.Part observee",
-              "nativeQueryRef": "Part observee"
+              "queryRef": "fact_passage.Retard median observe (min)",
+              "nativeQueryRef": "Retard median observe (min)"
             }
           ]
         }
@@ -42,7 +42,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1B3A5C'"
+                      "Value": "'#1F2933'"
                     }
                   }
                 }
@@ -106,7 +106,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Passages retenus dans le taux'"
+                  "Value": "'Retard médian (min)'"
                 }
               }
             },

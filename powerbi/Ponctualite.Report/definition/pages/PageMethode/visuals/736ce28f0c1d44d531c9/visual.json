@@ -1,82 +1,81 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "f052633f6e557658a2be",
+  "name": "736ce28f0c1d44d531c9",
   "position": {
-    "x": 940,
-    "y": 14,
-    "z": 4,
-    "height": 88,
-    "width": 320,
-    "tabOrder": 4
+    "x": 20,
+    "y": 216,
+    "z": 37,
+    "height": 236,
+    "width": 600,
+    "tabOrder": 37
   },
   "visual": {
-    "visualType": "slicer",
+    "visualType": "clusteredBarChart",
     "query": {
       "queryState": {
-        "Values": {
+        "Y": {
           "projections": [
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dim_route"
+                      "Entity": "fact_passage"
                     }
                   },
-                  "Property": "mode"
+                  "Property": "Taux ponctualite observe"
                 }
               },
-              "queryRef": "dim_route.mode",
-              "nativeQueryRef": "mode"
+              "queryRef": "fact_passage.Taux ponctualite observe",
+              "nativeQueryRef": "Taux ponctualite observe",
+              "displayName": "Passages observés"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux vus apres coup"
+                }
+              },
+              "queryRef": "fact_passage.Taux vus apres coup",
+              "nativeQueryRef": "Taux vus apres coup",
+              "displayName": "Vus après coup"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux passages a venir"
+                }
+              },
+              "queryRef": "fact_passage.Taux passages a venir",
+              "nativeQueryRef": "Taux passages a venir",
+              "displayName": "Encore à venir"
             }
           ]
         }
       }
     },
     "objects": {
-      "general": [
+      "categoryAxis": [
         {
           "properties": {
-            "orientation": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "data": [
-        {
-          "properties": {
-            "mode": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Basic'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "header": [
-        {
-          "properties": {
-            "show": {
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
-            }
-          }
-        }
-      ],
-      "items": [
-        {
-          "properties": {
-            "fontColor": {
+            },
+            "labelColor": {
               "solid": {
                 "color": {
                   "expr": {
@@ -97,31 +96,138 @@
           }
         }
       ],
-      "selection": [
+      "valueAxis": [
         {
           "properties": {
-            "singleSelect": {
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
             },
-            "strictSingleSelect": {
+            "start": {
+              "expr": {
+                "Literal": {
+                  "Value": "0.8D"
+                }
+              }
+            },
+            "end": {
+              "expr": {
+                "Literal": {
+                  "Value": "0.95D"
+                }
+              }
+            },
+            "gridlineColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#EDF0F3'"
+                    }
+                  }
+                }
+              }
+            },
+            "labelColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1F2933'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "position": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bottom'"
+                }
+              }
+            },
+            "showTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            },
+            "labelColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
                 }
               }
             }
           }
         }
       ]
-    },
-    "syncGroup": {
-      "groupName": "mode",
-      "fieldChanges": false,
-      "filterChanges": true
     },
     "visualContainerObjects": {
       "title": [
@@ -137,7 +243,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Mode'"
+                  "Value": "'Trois populations, trois taux différents'"
                 }
               }
             },
@@ -177,6 +283,51 @@
               "expr": {
                 "Literal": {
                   "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Les passages vus après coup sont biaisés vers les trains longs : ils sont exclus du taux publié'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'left'"
                 }
               }
             }

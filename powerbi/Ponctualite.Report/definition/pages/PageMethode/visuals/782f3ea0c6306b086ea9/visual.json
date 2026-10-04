@@ -1,19 +1,38 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "6b92341e415f38633a2c",
+  "name": "782f3ea0c6306b086ea9",
   "position": {
-    "x": 950,
-    "y": 112,
-    "z": 27,
-    "height": 96,
-    "width": 290,
-    "tabOrder": 27
+    "x": 640,
+    "y": 216,
+    "z": 38,
+    "height": 236,
+    "width": 620,
+    "tabOrder": 38
   },
   "visual": {
-    "visualType": "card",
+    "visualType": "columnChart",
     "query": {
       "queryState": {
-        "Values": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Heure"
+                }
+              },
+              "queryRef": "fact_passage.Heure",
+              "nativeQueryRef": "Heure",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
           "projections": [
             {
               "field": {
@@ -23,26 +42,57 @@
                       "Entity": "fact_passage"
                     }
                   },
-                  "Property": "Retard p99 observe (min)"
+                  "Property": "Part observee"
                 }
               },
-              "queryRef": "fact_passage.Retard p99 observe (min)",
-              "nativeQueryRef": "Retard p99 observe (min)"
+              "queryRef": "fact_passage.Part observee",
+              "nativeQueryRef": "Part observee"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_passage"
+                  }
+                },
+                "Property": "Heure"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
       }
     },
     "objects": {
-      "labels": [
+      "categoryAxis": [
         {
           "properties": {
-            "color": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "gridlineShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "labelColor": {
               "solid": {
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1F2933'"
+                      "Value": "'#52606D'"
                     }
                   }
                 }
@@ -51,34 +101,73 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "28D"
-                }
-              }
-            },
-            "bold": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "9D"
                 }
               }
             }
           }
         }
       ],
-      "categoryLabels": [
+      "valueAxis": [
         {
           "properties": {
-            "show": {
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
+            },
+            "gridlineColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#EDF0F3'"
+                    }
+                  }
+                }
+              }
+            },
+            "labelColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
             }
           }
         }
       ],
-      "wordWrap": [
+      "dataPoint": [
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#8FB0C4'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "labels": [
         {
           "properties": {
             "show": {
@@ -106,7 +195,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Retard du 99e centile (min)'"
+                  "Value": "'Ce que le collecteur a réellement vu, heure par heure'"
                 }
               }
             },
@@ -146,6 +235,51 @@
               "expr": {
                 "Literal": {
                   "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Une heure sous-couverte ne fabrique plus de faux résultat : elle est écartée'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'left'"
                 }
               }
             }

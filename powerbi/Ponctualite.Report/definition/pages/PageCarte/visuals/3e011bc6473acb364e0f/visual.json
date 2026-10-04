@@ -1,20 +1,35 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "8e634820a3e6f3e0e1a5",
+  "name": "3e011bc6473acb364e0f",
   "position": {
-    "x": 20,
-    "y": 112,
-    "z": 24,
-    "height": 96,
-    "width": 290,
-    "tabOrder": 24
+    "x": 660,
+    "y": 220,
+    "z": 28,
+    "height": 330,
+    "width": 600,
+    "tabOrder": 28
   },
   "visual": {
-    "visualType": "card",
+    "visualType": "tableEx",
     "query": {
       "queryState": {
         "Values": {
           "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_station"
+                    }
+                  },
+                  "Property": "stop_name"
+                }
+              },
+              "queryRef": "dim_station.stop_name",
+              "nativeQueryRef": "stop_name",
+              "displayName": "Gare"
+            },
             {
               "field": {
                 "Measure": {
@@ -23,26 +38,98 @@
                       "Entity": "fact_passage"
                     }
                   },
-                  "Property": "Ecart de convention (pts)"
+                  "Property": "Passages observes (min 20)"
                 }
               },
-              "queryRef": "fact_passage.Ecart de convention (pts)",
-              "nativeQueryRef": "Ecart de convention (pts)"
+              "queryRef": "fact_passage.Passages observes (min 20)",
+              "nativeQueryRef": "Passages observes (min 20)",
+              "displayName": "Passages"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux ponctualite observe"
+                }
+              },
+              "queryRef": "fact_passage.Taux ponctualite observe",
+              "nativeQueryRef": "Taux ponctualite observe",
+              "displayName": "Taux (0 ou 5 min)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_passage"
+                    }
+                  },
+                  "Property": "Taux ponctualite strict"
+                }
+              },
+              "queryRef": "fact_passage.Taux ponctualite strict",
+              "nativeQueryRef": "Taux ponctualite strict",
+              "displayName": "Taux strict"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_passage"
+                  }
+                },
+                "Property": "Taux ponctualite observe"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
       }
     },
     "objects": {
-      "labels": [
+      "grid": [
         {
           "properties": {
-            "color": {
+            "gridVertical": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "outlineColor": {
               "solid": {
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#E39A2B'"
+                      "Value": "'#E4E7EB'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
                     }
                   }
                 }
@@ -51,7 +138,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "28D"
+                  "Value": "9D"
                 }
               }
             },
@@ -65,23 +152,34 @@
           }
         }
       ],
-      "categoryLabels": [
+      "values": [
         {
           "properties": {
-            "show": {
+            "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "9D"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1F2933'"
+                    }
+                  }
                 }
               }
             }
           }
         }
       ],
-      "wordWrap": [
+      "total": [
         {
           "properties": {
-            "show": {
+            "totals": {
               "expr": {
                 "Literal": {
                   "Value": "false"
@@ -106,7 +204,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Écart entre les deux conventions (pts)'"
+                  "Value": "'Cliquez une gare pour la situer sur la carte'"
                 }
               }
             },
@@ -146,6 +244,51 @@
               "expr": {
                 "Literal": {
                   "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Triée de la moins ponctuelle à la plus ponctuelle'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#52606D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'left'"
                 }
               }
             }

@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "bcd9ecdbc4720fa7a672",
+  "name": "cb3953809dbd60a9248c",
   "position": {
-    "x": 20,
-    "y": 10,
-    "z": 0,
-    "height": 74,
-    "width": 500,
-    "tabOrder": 0
+    "x": 660,
+    "y": 562,
+    "z": 29,
+    "height": 142,
+    "width": 600,
+    "tabOrder": 29
   },
   "visual": {
     "visualType": "textbox",
@@ -19,9 +19,9 @@
               {
                 "textRuns": [
                   {
-                    "value": "Ponctualité du réseau ferroviaire français",
+                    "value": "Lire la carte",
                     "textStyle": {
-                      "fontSize": "18pt",
+                      "fontSize": "11pt",
                       "fontWeight": "600",
                       "color": "#1B3A5C",
                       "fontFamily": "Segoe UI"
@@ -32,7 +32,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Flux GTFS-RT SNCF confronté aux horaires théoriques",
+                    "value": "Aucun fond de carte : la forme du pays vient des gares elles-mêmes. Une gare n'apparaît qu'à partir de 20 passages observés dans la sélection en cours, et les gares étrangères des liaisons transfrontalières sortent du cadre. Les segments filtrent la carte, le tableau et les chiffres ensemble.",
                     "textStyle": {
                       "fontSize": "9pt",
                       "color": "#52606D",
@@ -53,7 +53,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
                 }
               }
             },
@@ -131,7 +131,25 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E4E7EB'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
                 }
               }
             }
