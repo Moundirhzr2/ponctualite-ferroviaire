@@ -615,6 +615,27 @@ autour de la moyenne du réseau, 92 % en gris neutre : la gare ordinaire s'effac
 et seules les gares qui s'écartent de la norme, d'un côté ou de l'autre, prennent
 une couleur. C'est ce qui fait apparaître le Massif central en rouge.
 
+### 2026-10-04 — La tâche d'archivage s'est arrêtée sans prévenir
+
+Encore active à 2 h 56, la tâche `SncfArchiveSync` était désactivée au matin,
+après deux exécutions manquées. Personne ne l'avait désactivée volontairement,
+et Windows n'en garde pas la trace : l'historique des tâches planifiées est
+désactivé par défaut. La piste la plus probable est l'antivirus, pour qui une
+tâche lançant un script Python toutes les quatre heures depuis un dossier
+utilisateur ressemble à un logiciel malveillant qui s'installe pour durer.
+L'hypothèse n'est pas vérifiée.
+
+Rien n'a été perdu — Supabase garde quatorze jours et le rattrapage a pris six
+secondes —, mais rien ne l'aurait signalé non plus. C'est le même défaut que les
+cinq jours perdus de septembre, sous une autre forme : une automatisation qui
+tombe en silence n'est pas plus sûre qu'une tâche manuelle oubliée.
+
+`archive.py` horodate désormais chaque succès, et `refresh.py` commence par
+vérifier deux choses : que la tâche est active, et que le dernier succès a moins
+de 24 heures. Sinon, il le dit en tête de sa sortie. Le drapeau d'activation est
+lu dans le XML de la tâche plutôt que dans la colonne d'état de `schtasks`, qui
+est traduite (« Désactivé » ici) et casserait sur une autre langue de Windows.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
@@ -747,7 +768,7 @@ d'ensemble, l'autocar 87,7 %, le train 92,3 %.
 
 Deux niveaux de vérification, qui ne se remplacent pas. Les 15 contrôles de
 `src/quality_checks.py` portent sur les **données** : ils tournent à chaque
-reconstruction et bloquent l'export si un invariant casse. Les 45 tests de
+reconstruction et bloquent l'export si un invariant casse. Les 53 tests de
 `tests/` portent sur le **code** : ils vérifient que chaque règle produit le bon
 résultat sur des cas construits à la main, et tournent à chaque push sur GitHub.
 
@@ -770,6 +791,7 @@ correction dans le journal :
 | Référentiel GTFS | une version plus récente remplace la desserte d'un trajet sans fusionner ; un trajet abandonné est conservé ; les trous de l'archive se comblent vers l'avant seulement |
 | Porte qualité | elle passe sur un modèle sain et échoue sur chacune de huit ruptures provoquées ; le taux de jointure reste jour par jour |
 | Synchronisation | pagination, reprise après coupure, curseur et lignes validés ensemble, jours manquants nommés |
+| Alerte d'archivage | muette quand tout va bien et sur une machine sans la tâche ; parle quand la tâche est désactivée ou que le dernier succès dépasse 24 heures |
 
 **Les tests savent-ils échouer ?** Un test qui passe ne prouve rien s'il passerait
 aussi sur un code faux. Quatre règles ont donc été cassées volontairement, une à
@@ -801,6 +823,21 @@ ce qui la rend insensible à une machine éteinte au mauvais moment.
 
 La tâche tourne aussi sur batterie et rattrape une exécution manquée : un
 portable éteint à l'heure prévue se met à jour dès qu'il se rallume.
+
+**Une tâche qui s'arrête le dit.** Chaque archivage réussi laisse un horodatage
+dans la base, et `refresh.py` commence par le vérifier. Si la tâche est
+désactivée, ou si le dernier succès date de plus de 24 heures, il l'écrit en
+tête de sa sortie avant de rattraper le retard :
+
+```
+!!! L'ARCHIVAGE AUTOMATIQUE NE TOURNE PLUS
+    - la tâche planifiée SncfArchiveSync est désactivée
+    - dernier archivage réussi il y a 2 j 5 h (02/10 02:22 UTC)
+    Supabase ne garde que 14 jours : au-delà, les observations sont perdues.
+```
+
+C'est une alerte, pas un blocage : le reste du pipeline tourne normalement.
+Sur une machine sans la tâche — un clone, ou Linux — elle se tait.
 
 `src/refresh.py` reste le point d'entrée pour tout reconstruire — référentiel,
 schéma en étoile, contrôles, export Power BI — mais plus rien n'est perdu si on
@@ -915,5 +952,5 @@ Disable-ScheduledTask -TaskName "SncfRTIngest"
 - [x] Sortir la collecte du poste personnel (Supabase : Edge Function, `pg_cron`, Postgres)
 - [x] Identifiants entiers dans la base hébergée : 409 Mo ramenés à 136 Mo, rétention portée à 14 jours
 - [x] Séparer semaine et week-end dans la courbe horaire (15 journées complètes, test de permutation exact)
-- [x] Tests du code et intégration continue (45 tests, GitHub Actions)
+- [x] Tests du code et intégration continue (53 tests, GitHub Actions)
 - [x] Carte des gares, sans service cartographique externe (nuage de points longitude × latitude)

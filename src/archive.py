@@ -21,10 +21,14 @@ console and a job nobody can inspect is a job nobody trusts.
 """
 
 import logging
+import sqlite3
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+from ingest_sncf import DB_PATH
+from sync_supabase import STATE_SCHEMA, set_state
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
@@ -70,6 +74,22 @@ def run(script, label):
     return result.returncode
 
 
+def record_success():
+    """Timestamp the run, so refresh.py can tell whether archiving still happens.
+
+    A scheduled task can stop without a word: on 4 October 2026 this one was
+    found disabled, by nobody who would admit to it, two runs after the last
+    success. Nothing was lost because Supabase keeps fourteen days, but nothing
+    would have said so either.
+    """
+    connection = sqlite3.connect(DB_PATH, timeout=120)
+    with connection:
+        connection.execute(STATE_SCHEMA)
+        set_state(connection, "archive.last_success",
+                  datetime.now(timezone.utc).isoformat(timespec="seconds"))
+    connection.close()
+
+
 def main():
     setup_logging()
     started = datetime.now(timezone.utc)
@@ -86,6 +106,7 @@ def main():
         logging.error("archive incomplete: %d step(s) failed in %.1f s", failures, elapsed)
         return 1
 
+    record_success()
     logging.info("archive up to date in %.1f s", elapsed)
     return 0
 
