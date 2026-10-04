@@ -1,5 +1,7 @@
 # Ponctualité ferroviaire — pipeline temps réel GTFS-RT
 
+[![tests](https://github.com/Moundirhzr2/ponctualite-ferroviaire/actions/workflows/tests.yml/badge.svg)](https://github.com/Moundirhzr2/ponctualite-ferroviaire/actions/workflows/tests.yml)
+
 Pipeline de collecte et d'analyse de la ponctualité du réseau ferroviaire
 français (TGV, Intercités, TER), à partir des données ouvertes du Point d'Accès
 National [transport.data.gouv.fr](https://transport.data.gouv.fr).
@@ -564,6 +566,24 @@ sécurité et de performance de Supabase ne remontent rien. La rétention passe 
 7 à 14 jours ; elle pourrait aller plus loin, mais l'archive locale est
 alimentée toutes les quatre heures et n'en a plus besoin.
 
+### 2026-10-04 — Des tests sur le code, et le premier a trouvé un défaut
+
+Jusqu'ici, seules les données étaient vérifiées. Une suite de 45 tests couvre
+désormais les règles du code, et l'un d'eux a échoué dès sa première exécution,
+sur un défaut réel de la porte qualité.
+
+Le contrôle des paliers de 5 minutes calcule la part de retards non nuls hors
+palier. Sur un modèle où aucun train n'est en retard, cette part vaut 0/0 : SQL
+renvoie `NULL`, et la comparaison Python `None <= 5` lève une exception. La
+porte qualité, censée laisser passer un réseau parfaitement à l'heure, s'arrêtait
+en erreur. Ce cas n'arrive jamais sur les vraies données — il y a toujours des
+trains en retard —, c'est précisément pour ça qu'aucune exécution réelle ne
+l'avait révélé. Corrigé par un `COALESCE`.
+
+C'est l'intérêt des tests à côté des contrôles de données : les données réelles
+n'explorent que les cas qu'elles contiennent ; un test peut construire celui
+qu'elles ne contiennent pas encore.
+
 ## Modèle de données
 
 Schéma en étoile construit par `src/build_marts.py` dans `data/punctuality.db` :
@@ -691,6 +711,41 @@ d'ensemble, l'autocar 87,7 %, le train 92,3 %.
 > palmarès. Les gares allemandes apparaissent par les liaisons transfrontalières
 > et ne disent rien du réseau allemand. Enfin, aucun taux publié ici n'est plus
 > fin que le palier de 5 minutes du flux.
+
+## Tests
+
+Deux niveaux de vérification, qui ne se remplacent pas. Les 15 contrôles de
+`src/quality_checks.py` portent sur les **données** : ils tournent à chaque
+reconstruction et bloquent l'export si un invariant casse. Les 45 tests de
+`tests/` portent sur le **code** : ils vérifient que chaque règle produit le bon
+résultat sur des cas construits à la main, et tournent à chaque push sur GitHub.
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Aucun test n'a besoin du réseau, de Supabase ni de `data/punctuality.db` :
+chacun construit les quelques lignes dont il a besoin dans une base SQLite en
+mémoire. La suite complète tourne en moins d'une seconde.
+
+Ce qui est couvert, ce sont les règles qui ont chacune fait l'objet d'une
+correction dans le journal :
+
+| Module | Ce que les tests verrouillent |
+|---|---|
+| Collecte | un retard absent reste inconnu au lieu de devenir « à l'heure » ; une ligne n'est réécrite que si elle change, ou une fois le passage confirmé |
+| Schéma en étoile | le palier de 5 minutes compte comme ponctuel ; un train supprimé jamais ; la couverture horaire en heure de Paris, changement d'heure compris ; un passage après minuit jugé sur le jour suivant |
+| Référentiel GTFS | une version plus récente remplace la desserte d'un trajet sans fusionner ; un trajet abandonné est conservé ; les trous de l'archive se comblent vers l'avant seulement |
+| Porte qualité | elle passe sur un modèle sain et échoue sur chacune de huit ruptures provoquées ; le taux de jointure reste jour par jour |
+| Synchronisation | pagination, reprise après coupure, curseur et lignes validés ensemble, jours manquants nommés |
+
+**Les tests savent-ils échouer ?** Un test qui passe ne prouve rien s'il passerait
+aussi sur un code faux. Quatre règles ont donc été cassées volontairement, une à
+une — le palier de 5 minutes compté en retard, la confirmation du passage
+supprimée, le décalage après minuit retiré, les dessertes fusionnées au lieu
+d'être remplacées. Chaque rupture a été détectée, à chaque fois par le test
+écrit pour elle.
 
 ## Archivage automatique
 
@@ -829,4 +884,5 @@ Disable-ScheduledTask -TaskName "SncfRTIngest"
 - [x] Sortir la collecte du poste personnel (Supabase : Edge Function, `pg_cron`, Postgres)
 - [x] Identifiants entiers dans la base hébergée : 409 Mo ramenés à 136 Mo, rétention portée à 14 jours
 - [x] Séparer semaine et week-end dans la courbe horaire (15 journées complètes, test de permutation exact)
+- [x] Tests du code et intégration continue (45 tests, GitHub Actions)
 - [ ] Carte des gares (visuel désactivé par défaut dans Power BI, voir `docs/powerbi.md`)

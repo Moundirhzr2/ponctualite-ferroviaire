@@ -123,8 +123,10 @@ CHECKS = [
     ),
     (
         "5-minute steps, % of exceptions",
-        """SELECT CAST(ROUND(100.0 * SUM(CASE WHEN arrival_delay_s % 300 <> 0 THEN 1 ELSE 0 END)
-                            / COUNT(*)) AS INT)
+        # With no late train at all the share is 0/0, which SQL returns as NULL;
+        # COALESCE reads that as "no exception" instead of crashing the gate.
+        """SELECT COALESCE(CAST(ROUND(100.0 * SUM(CASE WHEN arrival_delay_s % 300 <> 0 THEN 1 ELSE 0 END)
+                                     / COUNT(*)) AS INT), 0)
            FROM fact_passage
            WHERE arrival_delay_s IS NOT NULL AND arrival_delay_s <> 0""",
         lambda n: n <= 5,
