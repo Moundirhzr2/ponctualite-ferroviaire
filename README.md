@@ -457,6 +457,11 @@ manquée », que Windows ne laisse pas activer sans droits d'administrateur :
 six créneaux par jour suffisent pour qu'un portable allumé une fois dans la
 journée soit à jour.
 
+*Correction du 04/10 : ce n'était pas Windows qui refusait, mais l'environnement
+restreint depuis lequel la tâche avait été créée. Le rattrapage et le démarrage
+sur batterie sont maintenant activés ; la répétition reste, elle ne coûte rien.
+Une hypothèse fausse de plus, consignée comme les autres.*
+
 **Un trou se voit désormais.** `sync_supabase.py` compare les jours présents dans
 l'archive et nomme ceux qui manquent :
 
@@ -656,11 +661,8 @@ Le journal est dans `data/archive.log`. Une exécution sans rien de neuf prend
 7 secondes ; la tâche est donc répétée plutôt que programmée une fois par jour,
 ce qui la rend insensible à une machine éteinte au mauvais moment.
 
-**Une case à cocher manuellement.** Par défaut, Windows refuse de lancer une
-tâche quand le portable est sur batterie. Dans le *Planificateur de tâches*,
-onglet *Conditions* de `SncfArchiveSync`, décocher « Ne démarrer la tâche que si
-l'ordinateur est alimenté par le secteur ». Sans ça, l'archivage ne tourne que
-branché.
+La tâche tourne aussi sur batterie et rattrape une exécution manquée : un
+portable éteint à l'heure prévue se met à jour dès qu'il se rallume.
 
 `src/refresh.py` reste le point d'entrée pour tout reconstruire — référentiel,
 schéma en étoile, contrôles, export Power BI — mais plus rien n'est perdu si on
