@@ -19,8 +19,9 @@ les visuels se croisent : cliquer sur une ligne filtre le reste de la page.
 
 La première page met le taux entre ses deux bornes et donne, juste à côté, la
 raison de cet encadrement : le flux n'annonce les retards que par paliers de
-5 minutes. La courbe horaire est doublée d'une lecture jour par jour, parce
-qu'une courbe cumulée avait déjà menti une fois (journal du 12/09).
+5 minutes. La courbe horaire est doublée d'une comparaison semaine / week-end,
+dont l'écart a été soumis à un test exact avant d'être affiché (journal du
+03/10).
 
 ![Lignes et gares les moins ponctuelles](docs/images/powerbi-2-lignes-gares.png)
 

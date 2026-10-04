@@ -67,12 +67,12 @@ Le flux SNCF n'annonce les retards que par paliers de 5 minutes, soit exactement
 le seuil de ponctualité (journal du 15/09). Le rapport publie donc deux mesures
 côte à côte, jamais l'une sans l'autre :
 
-| Mesure | Définition | Valeur au 15/09 |
+| Mesure | Définition | Valeur au 03/10 |
 |---|---|---|
-| `Taux ponctualite observe` | retard annoncé de 0 ou 5 minutes | 92,4 % |
-| `Taux ponctualite strict` | retard annoncé sous 5 minutes | 83,6 % |
+| `Taux ponctualite observe` | retard annoncé de 0 ou 5 minutes | 92,3 % |
+| `Taux ponctualite strict` | retard annoncé sous 5 minutes | 83,7 % |
 
-`Ecart de convention (pts)` affiche la différence, 8,8 points, qui ne mesure
+`Ecart de convention (pts)` affiche la différence, 8,6 points, qui ne mesure
 aucun train : seulement le sort du palier de 5 minutes.
 
 ### Une seule mesure porte toutes les règles de population

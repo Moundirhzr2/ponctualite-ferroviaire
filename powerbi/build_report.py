@@ -248,9 +248,9 @@ def page_vue():
             "padding": [{"properties": {"top": litt(0), "bottom": litt(0), "left": litt(0), "right": litt(0)}}],
         },
     ))
-    v.append(segment("seg-jour", "fact_passage", "Jour", "Jour de service", 600, 14, 200, 88, "jour", liste_deroulante=True))
-    v.append(segment("seg-type", "fact_passage", "Type de jour", "Type de jour", 820, 14, 220, 88, "type"))
-    v.append(segment("seg-mode", "dim_route", "mode", "Mode", 1060, 14, 200, 88, "mode"))
+    v.append(segment("seg-jour", "fact_passage", "Jour", "Jour de service", 600, 14, 160, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type", "fact_passage", "Type de jour", "Type de jour", 780, 14, 220, 88, "type"))
+    v.append(segment("seg-mode", "dim_route", "mode", "Mode", 1020, 14, 240, 88, "mode"))
 
     cartes = [
         ("Taux ponctualite observe", "Ponctualité (0 ou 5 min annoncés)", BLEU),
@@ -296,7 +296,7 @@ def page_vue():
     ))
 
     objets_jour = {}
-    objets_jour.update(axe_pourcentage(0.70, 1.0))
+    objets_jour.update(axe_pourcentage(0.85, 0.97))
     objets_jour.update(legende())
     objets_jour["lineStyles"] = [{"properties": {"strokeWidth": litt(2), "showMarker": litt(True)}}]
     v.append(visuel(
@@ -317,7 +317,7 @@ def page_vue():
         paragraphe([("Passages observés. ", {"taille": "9pt", "gras": "600"}),
                     ("Un passage ne compte que s'il a eu lieu et que le collecteur tournait à cette heure-là. Les passages vus après coup sont biaisés vers les trains longs.", {"taille": "9pt", "couleur": GRIS})], espace_avant=6),
         paragraphe([("Deux bornes. ", {"taille": "9pt", "gras": "600"}),
-                    ("Le flux n'annonce les retards que par paliers de 5 minutes, soit exactement le seuil retenu : 8,8 % des passages sont annoncés à 5 minutes pile et décident du taux à eux seuls. Le taux est donc encadré, jamais publié seul.", {"taille": "9pt", "couleur": GRIS})], espace_avant=6),
+                    ("Le flux n'annonce les retards que par paliers de 5 minutes, soit exactement le seuil retenu : près de 9 % des passages sont annoncés à 5 minutes pile et décident du taux à eux seuls. Le taux est donc encadré, jamais publié seul.", {"taille": "9pt", "couleur": GRIS})], espace_avant=6),
         paragraphe([("Seuils. ", {"taille": "9pt", "gras": "600"}),
                     ("Ponctualité mesurée par passage en gare, pas par trajet. Trains supprimés conservés mais jamais comptés ponctuels. Classements limités aux lignes et gares d'au moins 20 passages.", {"taille": "9pt", "couleur": GRIS})], espace_avant=6),
     ], fond="#FFFFFF"))
@@ -331,9 +331,9 @@ def page_lignes():
         paragraphe([("Où la ponctualité décroche", {"taille": "18pt", "gras": "600", "couleur": BLEU})]),
         paragraphe([("Lignes et gares d'au moins 20 passages observés  ·  tout est croisé : cliquez sur une barre", {"taille": "9pt", "couleur": GRIS})]),
     ]))
-    v.append(segment("seg-jour2", "fact_passage", "Jour", "Jour de service", 600, 14, 200, 88, "jour", liste_deroulante=True))
-    v.append(segment("seg-type2", "fact_passage", "Type de jour", "Type de jour", 820, 14, 220, 88, "type"))
-    v.append(segment("seg-mode2", "dim_route", "mode", "Mode", 1060, 14, 200, 88, "mode"))
+    v.append(segment("seg-jour2", "fact_passage", "Jour", "Jour de service", 600, 14, 160, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type2", "fact_passage", "Type de jour", "Type de jour", 780, 14, 220, 88, "type"))
+    v.append(segment("seg-mode2", "dim_route", "mode", "Mode", 1020, 14, 240, 88, "mode"))
 
     objets_barres = {
         "categoryAxis": [{"properties": {"showAxisTitle": litt(False), "labelColor": couleur(ENCRE), "fontSize": litt(9)}}],
@@ -409,8 +409,8 @@ def page_methode():
         paragraphe([("Ce que le chiffre ne dit pas tout seul", {"taille": "18pt", "gras": "600", "couleur": BLEU})]),
         paragraphe([("Trois corrections appliquées aux données avant toute publication", {"taille": "9pt", "couleur": GRIS})]),
     ]))
-    v.append(segment("seg-jour3", "fact_passage", "Jour", "Jour de service", 820, 14, 200, 88, "jour", liste_deroulante=True))
-    v.append(segment("seg-type3", "fact_passage", "Type de jour", "Type de jour", 1040, 14, 220, 88, "type"))
+    v.append(segment("seg-jour3", "fact_passage", "Jour", "Jour de service", 760, 14, 160, 88, "jour", liste_deroulante=True))
+    v.append(segment("seg-type3", "fact_passage", "Type de jour", "Type de jour", 940, 14, 320, 88, "type"))
 
     v.append(carte("ecart", "Ecart de convention (pts)", "Écart entre les deux conventions (pts)", 20, 112, 290, 96, AMBRE))
     v.append(carte("part-obs", "Part observee", "Passages retenus dans le taux", 330, 112, 290, 96, BLEU))

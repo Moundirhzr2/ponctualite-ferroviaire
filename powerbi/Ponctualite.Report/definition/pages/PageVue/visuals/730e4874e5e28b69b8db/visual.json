@@ -62,7 +62,7 @@
                     }
                   },
                   {
-                    "value": "Le flux n'annonce les retards que par paliers de 5 minutes, soit exactement le seuil retenu : 8,8 % des passages sont annoncés à 5 minutes pile et décident du taux à eux seuls. Le taux est donc encadré, jamais publié seul.",
+                    "value": "Le flux n'annonce les retards que par paliers de 5 minutes, soit exactement le seuil retenu : près de 9 % des passages sont annoncés à 5 minutes pile et décident du taux à eux seuls. Le taux est donc encadré, jamais publié seul.",
                     "textStyle": {
                       "fontSize": "9pt",
                       "color": "#52606D",
